@@ -4,10 +4,11 @@ from discord.ext import commands
 class Welcome(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
+    
+    welcome_channel_id = 896803126542229534
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        channel = discord.utils.get(member.guild.channels, id=896803126542229534)
+        channel = discord.utils.get(member.guild.channels, id=welcome_channel_id)
         if channel is not None:
             embed = discord.Embed(
                 title=f"Welcome to our server, {member.name}!",
