@@ -7,7 +7,7 @@ class Welcome(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        channel = discord.utils.get(member.guild.channels, name='welcome-channel')
+        channel = discord.utils.get(member.guild.channels, id=896803126542229534)
         if channel is not None:
             embed = discord.Embed(
                 title=f"Welcome to our server, {member.name}!",
