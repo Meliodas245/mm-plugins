@@ -6,16 +6,15 @@ class Welcome(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_member_join(member):
+    async def on_member_join(self, member):
         channel = discord.utils.get(member.guild.channels, name='welcome-channel')
-        print("work")
         if channel is not None:
             embed = discord.Embed(
                 title=f"Welcome to our server, {member.name}!",
                 description=f"Thanks for joining our community, {member.name}!",
-                color="0x00ff00"
+                colour = discord.Colour.from_rgb(191, 255, 0)
             )
-            embed.set_thumbnail(url=member.avatar_url)
+            embed.set_thumbnail(url=member.display_avatar)
 
             await channel.send(embed=embed)
 
