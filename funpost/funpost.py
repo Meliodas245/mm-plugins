@@ -45,20 +45,21 @@ class Misc(commands.Cog):
     async def gaydar(self, ctx, member: commands.MemberConverter):
 
         '''🌈?'''
-        print(member)
+
         # self rate
         if member is None:
-            member = ctx.user
+            member = ctx.author
         
         num = random.randint(1, 10001)/100
 
         embed = discord.Embed(
             title = f"The 🏳️‍🌈 has decided...",
-            description = f"{member} is **{num}%** gae.",
+            description = f"{member.name} is **{num}%** gae.",
             colour = discord.Colour.random()
         )
         
-        embed.set_footer(text="100% accuracy, source: me")
+        embed.set_thumbnail(url="https://upload-bbs.mihoyo.com/upload/2022/06/12/2f55e1f199efc29f3c4e9076d3288365_7013897107954424230.png")
+        embed.set_footer(text=self.footer)
         
         await ctx.send(embed=embed)
 
