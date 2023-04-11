@@ -9,7 +9,7 @@ from core.models import PermissionLevel
 # List of commands here:
 # ?advice
 # ?gaydar
-# ?yatta
+# ?magic8ball
 
 class Misc(commands.Cog):
     """Funpost Plugin"""
@@ -63,5 +63,43 @@ class Misc(commands.Cog):
         
         await ctx.send(embed=embed)
 
+    # Magic 8 Ball
+    @checks.has_permissions(PermissionLevel.REGULAR)
+    @commands.command(aliases=['8ball', 'ball'])
+    async def magic8ball(self, ctx, *, text):
+        
+        '''Ask the magic 8 ball~'''
+
+        num = random.randint(0, 9)
+        
+        embed = discord.Embed(
+            title = f"The Magic 8 Ball has decided...",
+            colour = discord.Colour.random()
+        )
+
+        embed.add_field(name='Question', value=text)
+        embed.set_footer(text=self.footer)
+
+        with open('plugins/Meliodas245/mm-plugins/funpost-master/8ball.json') as f:
+            ans = json.load(f)
+
+        if num >= 6 and num<= 9:
+            x = random.randint(0,len(ans[0]['positive']) - 1)
+            embed.set_thumbnail(url="https://img-os-static.hoyolab.com/communityWeb/upload/c4422f55fa7b4596174a0e2568e50d4b.png")
+            embed.add_field(name='Answer', value=f":8ball: {ans[0]['positive'][x]}", inline=False)
+            await ctx.send(embed=embed)
+        
+        elif num >= 3 and num < 6:
+            y = random.randint(0,len(ans[1]['neutral']) - 1)
+            embed.set_thumbnail(url="https://img-os-static.hoyolab.com/communityWeb/upload/e92fbe1a02852189373f0c0f48f9fe5b.png")
+            embed.add_field(name='Answer', value=f":8ball: {ans[1]['neutral'][y]}", inline=False)
+            await ctx.send(embed=embed)
+        
+        elif num >= 0 and num < 3:
+            z = random.randint(0,len(ans[2]['negative']) - 1)
+            embed.set_thumbnail(url="https://img-os-static.hoyolab.com/communityWeb/upload/19dacf2bf7dad6cea3b4a1d8d68045a0.png")
+            embed.add_field(name='Answer', value=f":8ball: {ans[2]['negative'][z]}", inline=False)
+            await ctx.send(embed=embed)
+            
 async def setup(bot):
     await bot.add_cog(Misc(bot))
