@@ -15,7 +15,7 @@ class Misc(commands.Cog):
     """Funpost Plugin"""
     def __init__(self, bot):
         self.bot = bot
-        self.footer = "Coming from jej's spaghetti code 🍝"
+        self.footer = "coming from jej's spaghetti code 🍝"
 
     # Advice
     @checks.has_permissions(PermissionLevel.REGULAR)
@@ -68,12 +68,19 @@ class Misc(commands.Cog):
     @commands.command(aliases=['8ball', 'ball'])
     async def magic8ball(self, ctx, *, text):
         
-        '''Ask the magic 8 ball~'''
+        '''Ask the magic Seele~'''
 
         num = random.randint(0, 9)
         
+        titles = [
+            'Seele has decided..',
+            'Seele is choosing..',
+            'Seele has thought about this..',
+            '"Seele" has picked this for you..'
+        ]
+
         embed = discord.Embed(
-            title = f"The Magic 8 Ball has decided...",
+            title = f'{titles[random.randint(0, len(titles)-1)]}',
             colour = discord.Colour.random()
         )
 
