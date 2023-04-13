@@ -91,21 +91,24 @@ class Misc(commands.Cog):
             ans = json.load(f)
 
         if num >= 6 and num<= 9:
+            seele_smug = discord.utils.get(ctx.guild.emojis, id=1087154553255895040)
             x = random.randint(0,len(ans[0]['positive']) - 1)
             embed.set_thumbnail(url="https://img-os-static.hoyolab.com/communityWeb/upload/c4422f55fa7b4596174a0e2568e50d4b.png")
-            embed.add_field(name='Answer', value=f":8ball: {ans[0]['positive'][x]}", inline=False)
+            embed.add_field(name='Answer', value=f"{seele_smug} {ans[0]['positive'][x]}", inline=False)
             await ctx.send(embed=embed)
         
         elif num >= 3 and num < 6:
+            seele_acid = discord.utils.get(ctx.guild.emojis, id = 1085593631584432178)
             y = random.randint(0,len(ans[1]['neutral']) - 1)
             embed.set_thumbnail(url="https://img-os-static.hoyolab.com/communityWeb/upload/e92fbe1a02852189373f0c0f48f9fe5b.png")
-            embed.add_field(name='Answer', value=f":8ball: {ans[1]['neutral'][y]}", inline=False)
+            embed.add_field(name='Answer', value=f"{seele_acid} {ans[1]['neutral'][y]}", inline=False)
             await ctx.send(embed=embed)
         
         elif num >= 0 and num < 3:
+            seele_omg = discord.utils.get(ctx.guild.emojis, id = 1085605320065302630)
             z = random.randint(0,len(ans[2]['negative']) - 1)
             embed.set_thumbnail(url="https://img-os-static.hoyolab.com/communityWeb/upload/19dacf2bf7dad6cea3b4a1d8d68045a0.png")
-            embed.add_field(name='Answer', value=f":8ball: {ans[2]['negative'][z]}", inline=False)
+            embed.add_field(name='Answer', value=f"{seele_omg} {ans[2]['negative'][z]}", inline=False)
             await ctx.send(embed=embed)
             
 async def setup(bot):
