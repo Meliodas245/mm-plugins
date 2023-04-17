@@ -62,7 +62,9 @@ class Custom(commands.Cog):
         with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json', 'w') as out:
             json.dump(custom_commands, out, indent = 4)
 
-    
+        embed = discord.Embed(description = 'Command deleted!', colour = discord.Colour.random())
+        await ctx.send(embed=embed)
+        
     # Update custom command
     @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
     @commands.command()
