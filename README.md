@@ -1,2 +1,20 @@
-REEEEEEEEEEEEEEEEEEEEEEE
-![image](https://user-images.githubusercontent.com/64602039/228656825-835f104f-51cc-47bb-acba-a4db196aeb0f.png)
+# Custom Modmail Plugins for `Seele#4322` in Seele Mains Honkai Star Rail
+Plugin and Commands list:
+- welcome
+- funpost
+    - advice
+    - gaydar
+    - magic8ball
+
+# Plugin Installation
+```
+?plugin add Meliodas245/mm-plugins/<plugin name>
+```
+# Update
+```
+?plugin update Meliodas245/mm-plugins/<plugin name>
+```
+# Remove
+```
+?plugin remove Meliodas245/mm-plugins/<plugin name>
+```
