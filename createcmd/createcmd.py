@@ -18,7 +18,6 @@ class Custom(commands.Cog):
         self.bot = bot
 
     # Creating custom commands
-    # CHANGE THE PERM LEVEL
     @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
     @commands.command()
     async def create(self, ctx, cmd, *, txt):
