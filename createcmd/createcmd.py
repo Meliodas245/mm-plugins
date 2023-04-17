@@ -25,7 +25,7 @@ class Custom(commands.Cog):
         '''Creates a custom command'''
 
         # Load the set of custom commands:
-        with open('plugins/Meliodas245/mm-plugins/createcmd/commands.json') as f:
+        with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json') as f:
             custom_commands = json.load(f)
         
         # Check if the custom command doesnt exist
@@ -34,7 +34,7 @@ class Custom(commands.Cog):
             custom_commands[f'?{cmd}'] = txt
             
             # Save the new command
-            with open('plugins/Meliodas245/mm-plugins/createcmd/commands.json', 'w') as out:
+            with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json', 'w') as out:
                 json.dump(custom_commands, out, indent = 4)
 
             embed = discord.Embed(description = 'Command created!', colour = discord.Colour.random())
@@ -52,14 +52,14 @@ class Custom(commands.Cog):
         '''Deletes a custom command'''
 
         # Load the set of custom commands:
-        with open('plugins/Meliodas245/mm-plugins/createcmd/commands.json') as f:
+        with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json') as f:
             custom_commands = json.load(f)
         
         # Delete the custom command
         custom_commands.pop(f'?{cmd}', None)
         
         # Save the new list of commands
-        with open('plugins/Meliodas245/mm-plugins/createcmd/commands.json', 'w') as out:
+        with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json', 'w') as out:
             json.dump(custom_commands, out, indent = 4)
 
     
@@ -71,7 +71,7 @@ class Custom(commands.Cog):
         '''Updates a custom command'''
 
         # Load the set of custom commands:
-        with open('plugins/Meliodas245/mm-plugins/createcmd/commands.json') as f:
+        with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json') as f:
             custom_commands = json.load(f)
         
         # Check if the custom command exists
@@ -81,7 +81,7 @@ class Custom(commands.Cog):
             custom_commands[f'?{cmd}'] = txt
             
             # Save the updated command
-            with open('plugins/Meliodas245/mm-plugins/createcmd/commands.json', 'w') as out:
+            with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json', 'w') as out:
                 json.dump(custom_commands, out, indent = 4)
 
             embed = discord.Embed(description = 'Command updated!', colour = discord.Colour.random())
@@ -99,7 +99,7 @@ class Custom(commands.Cog):
         '''List the custom commands'''
         
         # Load the set of custom commands:
-        with open('plugins/Meliodas245/mm-plugins/createcmd/commands.json') as f:
+        with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json') as f:
             custom_commands = json.load(f)
         
         commands = list(custom_commands.keys())
@@ -118,7 +118,7 @@ class Custom(commands.Cog):
     async def on_message(self, message):
         
         # Load the set of custom commands:
-        with open('plugins/Meliodas245/mm-plugins/createcmd/commands.json') as f:
+        with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json') as f:
             custom_commands = json.load(f)
 
         # Get the custom command
