@@ -12,12 +12,13 @@ class Custom(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # Executing custom commands
+    # Creating custom commands
     @checks.has_permissions(PermissionLevel.REGULAR)
     @commands.command()
     async def create(self, ctx, cmd, url):
         custom_commands[f'?{cmd}'] = url
     
+    # Executing custom commands
     @commands.Cog.listener()
     async def on_message(self, message):
         
@@ -27,7 +28,7 @@ class Custom(commands.Cog):
             await message.channel.send(custom_commands[cmd])
         
         else:
-            await bot.process_commands(message)
+            await self.bot.process_commands(message)
 
 async def setup(bot):
     await bot.add_cog(Custom(bot))
