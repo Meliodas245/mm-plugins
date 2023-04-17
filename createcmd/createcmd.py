@@ -4,19 +4,18 @@ from discord.ext import commands
 from core import checks
 from core.models import PermissionLevel
 
+# Set of custom commands:
+custom_commands = {
+    '?airplanes' : 'https://media.discordapp.net/attachments/1086240031720603708/1087156186467532830/image.png?width=1177&height=654'
+}
 class Custom(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-    # Set of custom commands:
-    custom_commands = {
-        '?airplanes' : 'https://media.discordapp.net/attachments/1086240031720603708/1087156186467532830/image.png?width=1177&height=654'
-    }
 
     # Executing custom commands
     @checks.has_permissions(PermissionLevel.REGULAR)
     @commands.command()
     async def create(self, ctx, cmd, url):
-        
         custom_commands[f'?{cmd}'] = url
     
     @commands.Cog.listener()
