@@ -6,8 +6,9 @@ from core.models import PermissionLevel
 
 # List of commands here:
 # ?create
-# ?delet
-# ?list
+# ?cdelete
+# ?clist
+# ?cupdate
 
 class Custom(commands.Cog):
 
