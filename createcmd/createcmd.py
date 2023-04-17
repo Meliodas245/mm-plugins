@@ -20,7 +20,7 @@ class Custom(commands.Cog):
         custom_commands[f'?{cmd}'] = url
     
     @commands.Cog.listener()
-    async def on_message(message):
+    async def on_message(self, message):
         
         cmd = message.content.split(' ')[0]
         
