@@ -9,13 +9,13 @@ from core.models import PermissionLevel
 # List of commands here:
 # ?advice
 # ?gaydar
-# ?yatta
+# ?magic8ball
 
 class Misc(commands.Cog):
     """Funpost Plugin"""
     def __init__(self, bot):
         self.bot = bot
-        self.footer = "Coming from jej's spaghetti code 🍝"
+        self.footer = "coming from jej's spaghetti code 🍝"
 
     # Advice
     @checks.has_permissions(PermissionLevel.REGULAR)
@@ -63,5 +63,53 @@ class Misc(commands.Cog):
         
         await ctx.send(embed=embed)
 
+    # Magic 8 Ball
+    @checks.has_permissions(PermissionLevel.REGULAR)
+    @commands.command(aliases=['8ball', 'ball'])
+    async def magic8ball(self, ctx, *, text):
+        
+        '''Ask the magic Seele~'''
+
+        num = random.randint(0, 9)
+        
+        titles = [
+            'Seele has decided..',
+            'Seele is choosing..',
+            'Seele has thought about this..',
+            '"Seele" has picked this for you..'
+        ]
+
+        embed = discord.Embed(
+            title = f'{titles[random.randint(0, len(titles)-1)]}',
+            colour = discord.Colour.random()
+        )
+
+        embed.add_field(name='Question', value=text)
+        embed.set_footer(text=self.footer)
+
+        with open('plugins/Meliodas245/mm-plugins/funpost-master/8ball.json') as f:
+            ans = json.load(f)
+
+        if num >= 6 and num<= 9:
+            seele_smug = discord.utils.get(ctx.guild.emojis, id=1087154553255895040)
+            x = random.randint(0,len(ans[0]['positive']) - 1)
+            embed.set_thumbnail(url="https://img-os-static.hoyolab.com/communityWeb/upload/c4422f55fa7b4596174a0e2568e50d4b.png")
+            embed.add_field(name='Answer', value=f"{seele_smug} {ans[0]['positive'][x]}", inline=False)
+            await ctx.send(embed=embed)
+        
+        elif num >= 3 and num < 6:
+            seele_acid = discord.utils.get(ctx.guild.emojis, id = 1085593631584432178)
+            y = random.randint(0,len(ans[1]['neutral']) - 1)
+            embed.set_thumbnail(url="https://img-os-static.hoyolab.com/communityWeb/upload/e92fbe1a02852189373f0c0f48f9fe5b.png")
+            embed.add_field(name='Answer', value=f"{seele_acid} {ans[1]['neutral'][y]}", inline=False)
+            await ctx.send(embed=embed)
+        
+        elif num >= 0 and num < 3:
+            seele_omg = discord.utils.get(ctx.guild.emojis, id = 1085605320065302630)
+            z = random.randint(0,len(ans[2]['negative']) - 1)
+            embed.set_thumbnail(url="https://img-os-static.hoyolab.com/communityWeb/upload/19dacf2bf7dad6cea3b4a1d8d68045a0.png")
+            embed.add_field(name='Answer', value=f"{seele_omg} {ans[2]['negative'][z]}", inline=False)
+            await ctx.send(embed=embed)
+            
 async def setup(bot):
     await bot.add_cog(Misc(bot))
