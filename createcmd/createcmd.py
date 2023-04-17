@@ -15,8 +15,8 @@ class Custom(commands.Cog):
     # Creating custom commands
     @checks.has_permissions(PermissionLevel.REGULAR)
     @commands.command()
-    async def create(self, ctx, cmd, url):
-        custom_commands[f'?{cmd}'] = url
+    async def create(self, ctx, cmd, args*):
+        custom_commands[f'?{cmd}'] = args*
     
     # Executing custom commands
     @commands.Cog.listener()
