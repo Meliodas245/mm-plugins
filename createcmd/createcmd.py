@@ -20,9 +20,10 @@ class Custom(commands.Cog):
         custom_commands[f'?{cmd}'] = url
     
     @commands.Cog.listener()
-    async def on_message(message, *args):
-        cmd, *args = message.content.split(' ')
-
+    async def on_message(message):
+        
+        cmd = message.content.split(' ')[0]
+        
         if cmd in custom_commands:
             await message.channel.send(custom_commands[cmd])
         
