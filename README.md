@@ -5,6 +5,11 @@ Plugin and Commands list:
     - advice
     - gaydar
     - magic8ball
+- createcmd
+    - create
+    - cdelete
+    - cupdate
+    - clist
 
 # Plugin Installation
 ```
