@@ -37,11 +37,11 @@ class Custom(commands.Cog):
             with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json', 'w') as out:
                 json.dump(custom_commands, out, indent = 4)
 
-            embed = discord.Embed(description = 'Command created!', colour = discord.Colour.random())
+            embed = discord.Embed(description = 'Command created!', colour = discord.Colour.from_rgb(0, 255, 0))
             await ctx.send(embed=embed)
 
         else:
-            embed = discord.Embed(description = 'Command already exists!', colour = discord.Colour.random())
+            embed = discord.Embed(description = 'Command already exists!', colour = discord.Colour.from_rgb(255, 0, 0))
             await ctx.send(embed=embed)
 
     # Delete custom commands
@@ -62,7 +62,7 @@ class Custom(commands.Cog):
         with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json', 'w') as out:
             json.dump(custom_commands, out, indent = 4)
 
-        embed = discord.Embed(description = 'Command deleted!', colour = discord.Colour.random())
+        embed = discord.Embed(description = 'Command deleted!', colour = discord.Colour.from_rgb(255, 0, 0))
         await ctx.send(embed=embed)
         
     # Update custom command
