@@ -8,7 +8,7 @@ class Reaction(commands.Cog):
     # carl you tried
     @commands.Cog.listener()
     async def on_reaction_add(reaction, member):
-        if reaction.message.id == 902847613865459732:
+        if reaction.message.id == 1097762971373027348:
             guild = member.guild
             role = discord.utils.get(guild.roles, id=896300858277494784)
             member.add_roles(role)
