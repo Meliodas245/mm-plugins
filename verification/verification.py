@@ -13,7 +13,7 @@ class Reaction(commands.Cog):
         guild = discord.utils.find(lambda g : g.id == guild_id, self.bot.guilds)
 
         if message_id == 1097762971373027348:
-            role = discord.utils.get(guild.roles, id=896300858277494784)
+            role = discord.utils.get(guild.roles, name='Butterfly')
         
         if role is not None:
             member = payload.member
