@@ -7,10 +7,10 @@ class Reaction(commands.Cog):
 
     # carl you tried
     @commands.Cog.listener()
-    async def on_raw_reaction_add(payload):
+    async def on_raw_reaction_add(self, payload):
         message_id = payload.message_id
         guild_id = payload.guild_id
-        guild = discord.utils.find(lambda g : g.id == guild_id, bot.guilds)
+        guild = discord.utils.find(lambda g : g.id == guild_id, self.bot.guilds)
 
         if message_id == 1097762971373027348:
             role = discord.utils.get(guild.roles, id=896300858277494784)
