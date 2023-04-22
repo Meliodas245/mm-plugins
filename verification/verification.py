@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
-
+'''
+Currently not installed, as long as carl is working kekw
+'''
 class Reaction(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
