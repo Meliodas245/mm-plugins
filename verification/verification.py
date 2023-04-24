@@ -12,7 +12,8 @@ class Reaction(commands.Cog):
     async def on_raw_reaction_add(self, payload):
         message_id = payload.message_id
         # Get Message object from the Verification Channel
-        msg = self.bot.get_message(1097762971373027348)
+        channel = await self.bot.get_channel(1097760934090514523) # Channel ID
+        msg = await channel.fetch_message(1097762971373027348) # Message ID
         
         # Get Guild
         guild_id = payload.guild_id
@@ -43,6 +44,9 @@ class Reaction(commands.Cog):
         '''Fixes the reactions in verification channel'''
         msg = self.bot.get_message(1097762971373027348)
         await msg.add_reaction('✅')
+        
+        embed = discord.Embed(description = 'Reaction added!', colour = discord.Colour.from_rgb(0, 255, 0))
+        await ctx.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(Reaction(bot))
