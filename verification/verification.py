@@ -12,11 +12,15 @@ class Reaction(commands.Cog):
     async def on_raw_reaction_add(self, payload):
         message_id = payload.message_id
         guild_id = payload.guild_id
+        member = payload.member
         guild = discord.utils.find(lambda g : g.id == guild_id, self.bot.guilds)
         
         if message_id == 1097762971373027348 and payload.emoji.name == '✅':
             # Get Butterflies Role
             role = discord.utils.get(guild.roles, id=896300858277494784)
+            # Remove Reaction
+            if not member.bot:
+                await remove_reaction('✅', member)
         
         # Remove other types of reactions
         elif message_id == 1097762971373027348:
@@ -24,14 +28,9 @@ class Reaction(commands.Cog):
         
         # If role exists
         if role is not None:
-            member = payload.member
             # If member exists, Is not a bot and Doesn't have the Muted Role
             if member is not None and not member.bot and member.get_role(902856057662083103) is None:
                 await member.add_roles(role)
-
-            # Remove the reaction for member
-            if not member.bot:
-                await remove_reaction('✅', member)
 
     # In case all reactions get cleared
     @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
