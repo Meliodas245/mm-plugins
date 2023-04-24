@@ -36,10 +36,10 @@ class Reaction(commands.Cog):
     # In case all reactions get cleared
     @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
     @commands.command()
-    async def fixreaction():
+    async def fixreaction(self, ctx):
         '''Fixes the reactions in verification channel'''
         msg = self.bot.get_message(1097762971373027348)
         await msg.add_reaction('✅')
-        
+
 async def setup(bot):
     await bot.add_cog(Reaction(bot))
