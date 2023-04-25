@@ -13,7 +13,7 @@ from core.models import PermissionLevel
 
 # Custom MenuPages
 class CMenuPages(menus.MenuPages, inherit_buttons = False):
-    @button(':one:', position=First(0))
+    @button(':one:', position=First(0)):
     async def go_to_first_page(self, payload)
         await self.show_page(0)
     
