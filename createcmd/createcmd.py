@@ -113,7 +113,7 @@ class Custom(commands.Cog):
         for i in range(0, len(commands), 5):
             embed = discord.Embed(
                 title = 'List of Custom Commands',
-                description = '\n'.join(commands[i:i+4]),
+                description = '\n'.join(commands[i:i+5]),
                 colour = discord.Colour.random()
             )
             embed.set_footer(text=f"Total of {len(commands)} custom commands")
