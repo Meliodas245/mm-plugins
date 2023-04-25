@@ -1,7 +1,7 @@
 import discord
 import json
-from discord.ext import commands, menus
-from discord.ext.menus import button, First, Last
+import Paginator
+from discord.ext import commands
 from core import checks
 from core.models import PermissionLevel
 
@@ -11,38 +11,6 @@ from core.models import PermissionLevel
 # ?clist
 # ?cupdate
 
-# Custom MenuPages
-class CMenuPages(menus.MenuPages, inherit_buttons = False):
-    @button(':one:', position=First(0))
-    async def go_to_first_page(self, payload)
-        await self.show_page(0)
-    
-    @button(':skull:', position=First(1))
-    async def go_to_previous_page(self, payload):
-        await self.show_checked_page(self.current_page - 1)
-
-    @button('<:next_check:754948796361736213>', position=Last(1))
-    async def go_to_next_page(self, payload):
-        await self.show_checked_page(self.current_page + 1)
-
-    @button(':moyai:', position=Last(2))
-    async def go_to_last_page(self, payload):
-        max_pages = self._source.get_max_pages()
-        last_page = max(max_pages - 1, 0)
-        await self.show_page(last_page)
-
-    @button(':rofl:', position=Last(0))
-    async def stop_pages(self, payload):
-        self.stop()
-
-class MySource(menus.ListPageSource):
-    async def format_page(self, menu, entries):
-        embed = discord.Embed(
-            description=f"This is number {entries}.", 
-            color=discord.Colour.random()
-        )
-        embed.set_footer(text=f"Requested by {menu.ctx.author}")
-        return embed
 
 class Custom(commands.Cog):
     '''Custom Commands~'''
@@ -149,11 +117,11 @@ class Custom(commands.Cog):
 
         embed.set_footer(text=f"Total of {len(commands)} custom commands")
 
-        data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        formatter = MySource(data, per_page=1)
-        menu = MyMenuPages(formatter)
+        embeds = [discord.Embed(title="First embed"),
+                discord.Embed(title="Second embed"),
+                discord.Embed(title="Third embed")]
         
-        await menu.start(ctx)
+        await Paginator.Simple().start(ctx, pages=embeds)
 
     # Executing custom commands
     @commands.Cog.listener()
