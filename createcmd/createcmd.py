@@ -105,7 +105,7 @@ class Custom(commands.Cog):
         with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json') as f:
             custom_commands = json.load(f)
         
-        commands = list(custom_commands.keys()).sort()
+        commands = list(custom_commands.keys())
         
         # Embed
         embeds = []
