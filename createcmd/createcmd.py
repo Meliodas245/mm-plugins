@@ -107,7 +107,10 @@ class Custom(commands.Cog):
         
         commands = list(custom_commands.keys())
         
-        # Embed
+        # Sort the Commands Alphabetically
+        commands.sort()
+        
+        # Embeds
         embeds = []
 
         for i in range(0, len(commands), 5):
@@ -119,8 +122,13 @@ class Custom(commands.Cog):
             embed.set_footer(text=f"Total of {len(commands)} custom commands")
             
             embeds.append(embed)
-     
-        await Paginator.Simple().start(ctx, pages=embeds)
+
+        # Customize Paginator
+        PreviousButton = discord.ui.Button(emoji="<:bruh:1089823209660092486>", style=discord.ButtonStyle.secondary)
+        NextButton = discord.ui.Button(emoji="<:yello:1086213035548479569>", style=discord.ButtonStyle.secondary)
+        
+        # Send Paginator
+        await Paginator.Simple(PreviousButton=PreviousButton, NextButton=NextButton).start(ctx, pages=embeds)
 
     # Executing custom commands
     @commands.Cog.listener()
