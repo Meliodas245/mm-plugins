@@ -1,5 +1,6 @@
 import discord
 import json
+import Paginator
 from discord.ext import commands
 from core import checks
 from core.models import PermissionLevel
@@ -10,8 +11,8 @@ from core.models import PermissionLevel
 # ?clist
 # ?cupdate
 
-class Custom(commands.Cog):
 
+class Custom(commands.Cog):
     '''Custom Commands~'''
 
     def __init__(self, bot):
@@ -105,15 +106,29 @@ class Custom(commands.Cog):
             custom_commands = json.load(f)
         
         commands = list(custom_commands.keys())
-        embed = discord.Embed(
-            title = 'List of Custom Commands',
-            description = '\n'.join(commands),
-            colour = discord.Colour.random()
-        )
+        
+        # Sort the Commands Alphabetically
+        commands.sort()
+        
+        # Embeds
+        embeds = []
 
-        embed.set_footer(text=f"Total of {len(commands)} custom commands")
+        for i in range(0, len(commands), 5):
+            embed = discord.Embed(
+                title = 'List of Custom Commands',
+                description = '\n'.join(commands[i:i+5]),
+                colour = discord.Colour.random()
+            )
+            embed.set_footer(text=f"Total of {len(commands)} custom commands")
+            
+            embeds.append(embed)
 
-        await ctx.send(embed=embed)
+        # Customize Paginator
+        PreviousButton = discord.ui.Button(emoji="<:bruh:1089823209660092486>", style=discord.ButtonStyle.secondary)
+        NextButton = discord.ui.Button(emoji="<:yello:1086213035548479569>", style=discord.ButtonStyle.secondary)
+        
+        # Send Paginator
+        await Paginator.Simple(PreviousButton=PreviousButton, NextButton=NextButton).start(ctx, pages=embeds)
 
     # Executing custom commands
     @commands.Cog.listener()
