@@ -1,1 +1,1 @@
-discord-ext-menus == 1.1
+discord.py-pagination == 0.0.5

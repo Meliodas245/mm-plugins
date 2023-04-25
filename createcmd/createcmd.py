@@ -13,8 +13,8 @@ from core.models import PermissionLevel
 
 # Custom MenuPages
 class CMenuPages(menus.MenuPages, inherit_buttons = False):
-    @button('💀', position=First(0))
-    async def go_to_first_page(self, payload):
+    @button(':one:', position=First(0))
+    async def go_to_first_page(self, payload)
         await self.show_page(0)
     
     @button(':skull:', position=First(1))
@@ -151,7 +151,7 @@ class Custom(commands.Cog):
 
         data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         formatter = MySource(data, per_page=1)
-        menu = CMenuPages(formatter)
+        menu = MyMenuPages(formatter)
         
         await menu.start(ctx)
 
