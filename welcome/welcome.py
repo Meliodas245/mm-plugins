@@ -17,7 +17,7 @@ class Welcome(commands.Cog):
             )
 
             embed.set_thumbnail(url=member.display_avatar)
-            embed.set_image(url='https://media.discordapp.net/attachments/896803697223401522/1087553322136903770/seeleveliona.png?width=1154&height=676')
+            embed.set_image(url='https://media.discordapp.net/attachments/902836100261879818/1099532213990735952/ezgif.com-gif-maker_7.gif')
             embed.set_footer(text=f'Thanks to you, we now have {guild.member_count} members!', icon_url='https://media.discordapp.net/attachments/896803697223401522/1087555998434213978/seele_love.png')
             
             await channel.send(content=member.mention, embed = embed)
