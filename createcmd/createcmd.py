@@ -151,7 +151,7 @@ class Custom(commands.Cog):
 
         data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         formatter = MySource(data, per_page=1)
-        menu = MyMenuPages(formatter)
+        menu = CMenuPages(formatter)
         
         await menu.start(ctx)
 
