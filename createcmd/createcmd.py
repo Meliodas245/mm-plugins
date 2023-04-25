@@ -105,22 +105,20 @@ class Custom(commands.Cog):
         with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json') as f:
             custom_commands = json.load(f)
         
-        commands = list(custom_commands.keys())
+        commands = list(custom_commands.keys()).sort()
         
         # Embed
+        embeds = []
 
-        embed = discord.Embed(
-            title = 'List of Custom Commands',
-            description = '\n'.join(commands),
-            colour = discord.Colour.random()
-        )
-
-        embed.set_footer(text=f"Total of {len(commands)} custom commands")
-
-        embeds = [discord.Embed(title="First embed"),
-                discord.Embed(title="Second embed"),
-                discord.Embed(title="Third embed")]
-        
+        for i in range(0, len(commands), 5):
+            embeds.append[discord.Embed(
+                title = 'List of Custom Commands',
+                description = '\n'.join(commands[i:i+4]),
+                colour = discord.Colour.random()
+            )
+            embed.set_footer(text=f"Total of {len(commands)} custom commands")
+            ]
+     
         await Paginator.Simple().start(ctx, pages=embeds)
 
     # Executing custom commands
