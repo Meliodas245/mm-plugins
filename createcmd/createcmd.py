@@ -111,13 +111,14 @@ class Custom(commands.Cog):
         embeds = []
 
         for i in range(0, len(commands), 5):
-            embeds.append[discord.Embed(
+            embed = discord.Embed(
                 title = 'List of Custom Commands',
                 description = '\n'.join(commands[i:i+4]),
                 colour = discord.Colour.random()
             )
             embed.set_footer(text=f"Total of {len(commands)} custom commands")
-            ]
+            
+            embeds.append(embed)
      
         await Paginator.Simple().start(ctx, pages=embeds)
 
