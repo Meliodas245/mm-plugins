@@ -1,6 +1,7 @@
 import discord
 import json
-from discord.ext import commands
+from discord.ext import commands, menus
+from discord.ext.menus import button, First, Last
 from core import checks
 from core.models import PermissionLevel
 
@@ -10,8 +11,40 @@ from core.models import PermissionLevel
 # ?clist
 # ?cupdate
 
-class Custom(commands.Cog):
+# Custom MenuPages
+class CMenuPages(menus.MenuPages, inherit_buttons = False):
+    @button(':one:', position=First(0))
+    async def go_to_first_page(self, payload)
+        await self.show_page(0)
+    
+    @button(':skull:', position=First(1))
+    async def go_to_previous_page(self, payload):
+        await self.show_checked_page(self.current_page - 1)
 
+    @button('<:next_check:754948796361736213>', position=Last(1))
+    async def go_to_next_page(self, payload):
+        await self.show_checked_page(self.current_page + 1)
+
+    @button(':moyai:', position=Last(2))
+    async def go_to_last_page(self, payload):
+        max_pages = self._source.get_max_pages()
+        last_page = max(max_pages - 1, 0)
+        await self.show_page(last_page)
+
+    @button(':rofl:', position=Last(0))
+    async def stop_pages(self, payload):
+        self.stop()
+
+class MySource(menus.ListPageSource):
+    async def format_page(self, menu, entries):
+        embed = discord.Embed(
+            description=f"This is number {entries}.", 
+            color=discord.Colour.random()
+        )
+        embed.set_footer(text=f"Requested by {menu.ctx.author}")
+        return embed
+
+class Custom(commands.Cog):
     '''Custom Commands~'''
 
     def __init__(self, bot):
@@ -36,12 +69,12 @@ class Custom(commands.Cog):
             # Save the new command
             with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json', 'w') as out:
                 json.dump(custom_commands, out, indent = 4)
-
-            embed = discord.Embed(description = 'Command created!', colour = discord.Colour.random())
+            
+            embed = discord.Embed(description = 'Command created!', colour = discord.Colour.from_rgb(0, 255, 0))
             await ctx.send(embed=embed)
 
         else:
-            embed = discord.Embed(description = 'Command already exists!', colour = discord.Colour.random())
+            embed = discord.Embed(description = 'Command already exists!', colour = discord.Colour.from_rgb(255, 0, 0))
             await ctx.send(embed=embed)
 
     # Delete custom commands
@@ -62,7 +95,9 @@ class Custom(commands.Cog):
         with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json', 'w') as out:
             json.dump(custom_commands, out, indent = 4)
 
-    
+        embed = discord.Embed(description = 'Command deleted!', colour = discord.Colour.from_rgb(255, 0, 0))
+        await ctx.send(embed=embed)
+        
     # Update custom command
     @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
     @commands.command()
@@ -103,6 +138,9 @@ class Custom(commands.Cog):
             custom_commands = json.load(f)
         
         commands = list(custom_commands.keys())
+        
+        # Embed
+
         embed = discord.Embed(
             title = 'List of Custom Commands',
             description = '\n'.join(commands),
@@ -111,7 +149,11 @@ class Custom(commands.Cog):
 
         embed.set_footer(text=f"Total of {len(commands)} custom commands")
 
-        await ctx.send(embed=embed)
+        data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        formatter = MySource(data, per_page=1)
+        menu = MyMenuPages(formatter)
+        
+        await menu.start(ctx)
 
     # Executing custom commands
     @commands.Cog.listener()
