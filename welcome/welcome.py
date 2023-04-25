@@ -12,7 +12,7 @@ class Welcome(commands.Cog):
         if channel is not None:
             embed = discord.Embed(
                 title=f"Welcome to Seele Mains, {member.name}!",
-                description=f"Please read <#896803289679667302> to avoid any trouble, and <#898896680886370334> to familiarize yourself with the server.\n\n We wish you a pleasant stay; if you need help, DM <@902093847889313833> to start a Modmail ticket!",
+                description=f"Please read <#1097760934090514523> to avoid any trouble, and <#898896680886370334> to familiarize yourself with the server.\n\n We wish you a pleasant stay; if you need help, DM <@902093847889313833> to start a Modmail ticket!",
                 colour = discord.Colour.from_rgb(195, 177, 225)
             )
 

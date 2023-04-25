@@ -37,7 +37,7 @@ class Custom(commands.Cog):
             # Save the new command
             with open('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json', 'w') as out:
                 json.dump(custom_commands, out, indent = 4)
-            
+
             embed = discord.Embed(description = 'Command created!', colour = discord.Colour.from_rgb(0, 255, 0))
             await ctx.send(embed=embed)
 
