@@ -1,6 +1,7 @@
 # Custom Modmail Plugins for `Seele#4322` in Seele Mains Honkai Star Rail
 Plugin and Commands list:
 - welcome
+- verification
 - funpost
     - advice
     - gaydar
@@ -10,6 +11,7 @@ Plugin and Commands list:
     - cdelete
     - cupdate
     - clist
+- customsg
 
 # Plugin Installation
 ```
