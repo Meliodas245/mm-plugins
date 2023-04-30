@@ -6,6 +6,8 @@ Plugin and Commands list:
     - advice
     - gaydar
     - magic8ball
+    - fetchYuri
+    - Yuri
 - createcmd
     - create
     - cdelete
