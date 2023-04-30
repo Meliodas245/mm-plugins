@@ -1,6 +1,7 @@
 import discord
 import random
 import json
+import asyncio
 from discord.ext import commands
 from urllib.request import urlopen
 from core import checks
@@ -10,6 +11,26 @@ from core.models import PermissionLevel
 # ?advice
 # ?gaydar
 # ?magic8ball
+# ?fetchYuri
+# ?yuri
+
+#Yuri command fetch function idk if this can be relocated in another part of the code :)  - ChoZix
+#--------------------------------------------------------------------------------------------------------------------------------
+async def fetch_yuri_messages(bot, channel_id, ship):
+        channel = bot.get_channel(channel_id)
+        if channel:
+            messages = []
+            async for message in channel.history():
+                if message.embeds:
+                    messages.append(message.content)
+            file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
+
+            with open(file_name, 'w') as f:
+                json.dump(messages, f)
+            return len(messages)
+        else:
+            return 0
+#--------------------------------------------------------------------------------------------------------------------------------
 
 class Misc(commands.Cog):
     """Funpost Plugin"""
@@ -110,6 +131,65 @@ class Misc(commands.Cog):
             embed.set_thumbnail(url="https://img-os-static.hoyolab.com/communityWeb/upload/19dacf2bf7dad6cea3b4a1d8d68045a0.png")
             embed.add_field(name='Answer', value=f"{seele_omg} {ans[2]['negative'][z]}", inline=False)
             await ctx.send(embed=embed)
+            
+        #Yuri commands
+    
+    #fetch messages from threads
+    @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
+    @commands.command(name='fetchYuri',aliases = ['fetchyuri','fetchgay'])
+    async def fetch_yuri_command(self, ctx, *, ship="brsl"):
+        if ship == "starch":
+            channel_id = 1101776593422127144 # replace this id with starch thread id (done)
+            message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
+            await ctx.reply(f'fetched starch links')
+        elif ship == "brsl":
+            channel_id = 1101627790492708984  # replace this id with brsl thread id (done)
+            message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
+            await ctx.reply(f'fetched brsl links')
+        else:
+            await ctx.reply('specify the ship to fetch as "brsl" or "starch"')
+    
+    @checks.has_permissions(PermissionLevel.REGULAR)
+    @commands.command(name='Yuri', aliases=['yuri'])
+    async def Yuri(self, ctx, *, ship="brsl"):
+        file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
+        try:
+            with open(file_name, 'r') as f:
+                messages = json.load(f)
+                if len(messages) > 0:
+                    message = random.choice(messages)
+                    await ctx.reply(message)
+                else:
+                    await ctx.reply(f'not data fetched') # just in case
+        except FileNotFoundError:
+            await ctx.reply(f'try writing the ships like: "brsl" or "starch"')
+    
+    #Listener to autofetch yuri from thread
+    @commands.Cog.listener()
+    async def on_message(self,message):
+        #Set thread's ids (same as fetch_yuri_command)
+        brsl_channel_id = 1101627790492708984   # Replace this id with brsl thread id (already done)
+        starch_channel_id = 1101776593422127144 # Replace this id with starch thread id (already done)
+
+        # Check if the message is from one of the threads aforementioned
+        if message.channel.id == brsl_channel_id or message.channel.id == starch_channel_id:
+            await asyncio.sleep(0.5)
+            if len(message.embeds) > 0:
+                # Get the corresponding JSON file name
+                file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json" if message.channel.id == brsl_channel_id else "plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json"
+
+                # fetch the content of the message
+                try:
+                    with open(file_name, 'r') as f:
+                        messages = json.load(f)
+                except FileNotFoundError: #just in case again 
+                    messages = []
+    
+                messages.append(message.content)
+                with open(file_name, 'w') as f:
+                    json.dump(messages, f, indent=4)
+                    
+                    
             
 async def setup(bot):
     await bot.add_cog(Misc(bot))
