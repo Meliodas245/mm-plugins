@@ -17,10 +17,8 @@ from core.models import PermissionLevel
 
 #Yuri command fetch function idk if this can be relocated in another part of the code :)  - ChoZix
 #--------------------------------------------------------------------------------------------------------------------------------
-
 async def fetch_yuri_messages(bot, channel_id, ship):
     channel = bot.get_channel(channel_id)
-    global fetched
     if channel:
         messages = []
         async for message in channel.history():
