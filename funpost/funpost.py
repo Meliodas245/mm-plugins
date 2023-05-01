@@ -193,6 +193,8 @@ class Misc(commands.Cog):
     async def Yuri(self, ctx, *, ship="brsl"):
         
         '''Sends a random yuri art, default is bronseele, optional: starch'''
+        if ship.lower() == 'steven':
+            ship = 'starch'
         
         file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
         try:
