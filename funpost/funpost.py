@@ -212,6 +212,19 @@ class Misc(commands.Cog):
         except FileNotFoundError:
             await ctx.reply(f'try writing the ships like: "brsl" or "starch"')
     
+    # Yuri Archive
+    @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
+    @commands.command()
+    async def archive(self, ctx, *, ship="brsl"):
+        
+        '''Archives the json files'''
+        
+        files = [ 
+        discord.File('plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json'),
+        discord.File('plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json')
+        ]
+        await ctx.reply(files=files)
+
     #Listener to autofetch yuri from thread
     @commands.Cog.listener()
     async def on_message(self,message):
