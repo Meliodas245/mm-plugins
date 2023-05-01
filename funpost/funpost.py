@@ -229,8 +229,8 @@ class Misc(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self,message):
         #Set thread's ids (same as fetch_yuri_command)
-        brsl_channel_id = 1101776593422127144   # Replace this id with brsl thread id (already done)
-        starch_channel_id = 1101627790492708984 # Replace this id with starch thread id (already done)
+        brsl_channel_id = 1101627790492708984   # Replace this id with brsl thread id (already done)
+        starch_channel_id = 1101776593422127144 # Replace this id with starch thread id (already done)
 
         # Check if the message is from one of the threads aforementioned
         if message.channel.id == brsl_channel_id or message.channel.id == starch_channel_id:
