@@ -22,7 +22,7 @@ async def fetch_yuri_messages(bot, channel_id, ship):
     if channel:
         messages = []
         async for message in channel.history():
-            if len(message.embeds) > 0:
+            if len(message.embeds) > 0 and type(message) != discord.Message.reply:
                 messages.append(message.content)
         
         file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
