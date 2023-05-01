@@ -235,7 +235,7 @@ class Misc(commands.Cog):
         # Check if the message is from one of the threads aforementioned
         if message.channel.id == brsl_channel_id or message.channel.id == starch_channel_id:
             await asyncio.sleep(0.5)
-            if message.embeds is not None:
+            if message.embeds is not None and message.type != discord.MessageType.reply:
                 # Get the corresponding JSON file name
                 file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json" if message.channel.id == brsl_channel_id else "plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json"
 
