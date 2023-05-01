@@ -152,6 +152,9 @@ class Misc(commands.Cog):
     @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
     @commands.command(name='fetchYuri',aliases = ['fetchyuri','fetchgay'])
     async def fetch_yuri_command(self, ctx, *, ship="brsl"):
+        
+        '''Fetched the links in the relative ship thread, only can be run once.'''
+        
         if ship == "starch":
             # PREVENT DUPLICATION
             # Fetch the links
@@ -188,6 +191,9 @@ class Misc(commands.Cog):
     @checks.has_permissions(PermissionLevel.REGULAR)
     @commands.command(name='Yuri', aliases=['yuri'])
     async def Yuri(self, ctx, *, ship="brsl"):
+        
+        '''Sends a random yuri art, default is bronseele, optional: starch'''
+        
         file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
         try:
             with open(file_name, 'r') as f:
