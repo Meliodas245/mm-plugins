@@ -196,7 +196,7 @@ class Misc(commands.Cog):
         if ship == 'steven':
             ship = 'starch'
         
-        if ship == "both"
+        if ship == "both":
             num = random.randint(0,1)
             # starch True ship
             if num:
