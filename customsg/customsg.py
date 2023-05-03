@@ -12,6 +12,7 @@ class CustomMsg(commands.Cog):
         # Check if message contains the **Word**
         if 'masochist' in message.content.lower():
             await message.channel.send('seele mains promotes holy and pure actions!')
-            
+        elif 'gepard' in message.content.lower():
+            await message.channel.send('you mean g*pard')
 async def setup(bot):
     await bot.add_cog(CustomMsg(bot))
