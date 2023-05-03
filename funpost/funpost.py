@@ -162,7 +162,7 @@ class Misc(commands.Cog):
             with open(file_name, 'r') as f:
                 url = json.load(f)
 
-            if len(url) == 0:  
+            if len(url) == 1:  
                 channel_id = 1101776593422127144 # replace this id with starch thread id (done)
                 message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
                 await ctx.reply(f'fetched {message_count} starch links')
@@ -176,7 +176,7 @@ class Misc(commands.Cog):
             with open(file_name, 'r') as f:
                 url = json.load(f)
             
-            if len(url) == 1:
+            if len(url) == 0:
                 channel_id = 1101627790492708984  # replace this id with brsl thread id (done)
                 message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
                 await ctx.reply(f'fetched {message_count} brsl links')
