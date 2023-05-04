@@ -184,25 +184,43 @@ class Misc(commands.Cog):
             else:
                 await ctx.reply(f'already fetched, new messages are automatically fetched')
         
+        elif ship == "kafhime":
+            # PREVENT DUPLICATION
+            # Fetch the links
+            file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
+            with open(file_name, 'r') as f:
+                url = json.load(f)
+            
+            if len(url) == 0:
+                channel_id = 1103593594440396810  # replace this id with kafhime thread id (done)
+                message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
+                await ctx.reply(f'fetched {message_count} kafhime links')
+
+            else:
+                await ctx.reply(f'already fetched, new messages are automatically fetched')
+        
         else:
-            await ctx.reply('specify the ship to fetch as "brsl" or "starch"')
+            await ctx.reply('specify the ship to fetch as "brsl", "starch" or "kafhime"')
     
     # Yuri
     @checks.has_permissions(PermissionLevel.REGULAR)
     @commands.command(name='Yuri', aliases=['yuri'])
-    async def Yuri(self, ctx, *, ship="both"):
+    async def Yuri(self, ctx, *, ship="all"):
         
         '''Sends a random yuri art, default is both ships, ships: brsl, starch'''
         if ship == 'steven':
             ship = 'starch'
         
-        if ship == "both":
-            num = random.randint(0,1)
+        if ship == "all":
+            num = random.randint(0,2)
             # starch True ship
-            if num:
+            # this can be changed to a switch type statement 
+            if num == 1:
                 ship = 'starch'
-            else:
+            elif num == 2:
                 ship = 'brsl'
+            else:
+                ship = 'kafhime'
         
         file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
         try:
@@ -218,7 +236,7 @@ class Misc(commands.Cog):
                 await ctx.reply(f'not data fetched') # just in case
         
         except FileNotFoundError:
-            await ctx.reply(f'try writing the ships like: "brsl" or "starch"')
+            await ctx.reply(f'try writing the ships like: "brsl", "starch" or "kafhime"')
     
     # Yuri Archive
     @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
@@ -229,7 +247,8 @@ class Misc(commands.Cog):
         
         files = [ 
         discord.File('plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json'),
-        discord.File('plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json')
+        discord.File('plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json'),
+        discord.File('plugins/Meliodas245/mm-plugins/funpost-master/links_kafhime.json')
         ]
         await ctx.reply(files=files)
 
@@ -239,13 +258,21 @@ class Misc(commands.Cog):
         #Set thread's ids (same as fetch_yuri_command)
         brsl_channel_id = 1101627790492708984   # Replace this id with brsl thread id (already done)
         starch_channel_id = 1101776593422127144 # Replace this id with starch thread id (already done)
+        kafhime_channel_id = 1103593594440396810 # Replace this id with kafhime thread id (done)
 
         # Check if the message is from one of the threads aforementioned
-        if message.channel.id == brsl_channel_id or message.channel.id == starch_channel_id:
+        if message.channel.id == brsl_channel_id or message.channel.id == starch_channel_id or message.channel.id == kafhime_channel_id:
             await asyncio.sleep(0.5)
             if message.embeds and message.type != discord.MessageType.reply and 'tenor.com' not in message.content:
                 # Get the corresponding JSON file name
-                file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json" if message.channel.id == brsl_channel_id else "plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json"
+                # maybe we should change this to a "switch" type statement :yello:
+                if message.channel.id == brsl_channel_id:
+                    file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json"  
+                elif message.channel.id == starch_channel_id :
+                    file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json" 
+                else:
+                    file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_kafhime.json" 
+                        
 
                 # fetch the content of the message
                 try:
