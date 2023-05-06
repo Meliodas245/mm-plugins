@@ -151,49 +151,64 @@ class Misc(commands.Cog):
     #fetch messages from threads
     @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
     @commands.command(name='fetchYuri',aliases = ['fetchyuri','fetchgay'])
-    async def fetch_yuri_command(self, ctx):
+    async def fetch_yuri_command(self, ctx, *, ship="brsl"):
         
-        '''Fetches the links in all ship threads, can be only run once.'''
+        '''Fetched the links in the relative ship thread, only can be run once.'''
         
-        ships_sailed = [
-            {
-                'ship' : 'starch',
-                'channel_id' : 1101776593422127144
-            },
-            {
-                'ship' : 'brsl',
-                'channel_id' : 1101627790492708984
-            },
-            {
-                'ship' : 'kafhime',
-                'channel_id' : 1103593594440396810
-            }            
-        ]
-
-        for gay in ships_sailed:
-            ship = gay['ship']
-            channel_id = gay['channel_id']
+        if ship == "starch":
+            # PREVENT DUPLICATION
+            # Fetch the links
             file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
-            
+            with open(file_name, 'r') as f:
+                url = json.load(f)
+
+            if len(url) == 1:  
+                channel_id = 1101776593422127144 # replace this id with starch thread id (done)
+                message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
+                await ctx.reply(f'fetched {message_count} starch links')
+            else:
+                await ctx.reply(f'already fetched, new messages are automatically fetched')
+
+        elif ship == "brsl":
+            # PREVENT DUPLICATION
+            # Fetch the links
+            file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
             with open(file_name, 'r') as f:
                 url = json.load(f)
             
-            if len(url) <= 1:
+            if len(url) == 0:
+                channel_id = 1101627790492708984  # replace this id with brsl thread id (done)
                 message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
-                await ctx.send(f'fetched {message_count} {ship} links')
+                await ctx.reply(f'fetched {message_count} brsl links')
+
+            else:
+                await ctx.reply(f'already fetched, new messages are automatically fetched')
+        
+        elif ship == "kafhime":
+            # PREVENT DUPLICATION
+            # Fetch the links
+            file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
+            with open(file_name, 'r') as f:
+                url = json.load(f)
             
-            #wanted to clean up the code omg
-            #else:
-            #    await ctx.reply(f'already fetched, new messages are automatically fetched')
+            if len(url) == 0:
+                channel_id = 1103593594440396810  # replace this id with kafhime thread id (done)
+                message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
+                await ctx.reply(f'fetched {message_count} kafhime links')
+
+            else:
+                await ctx.reply(f'already fetched, new messages are automatically fetched')
+        
+        else:
+            await ctx.reply('specify the ship to fetch as "brsl", "starch" or "kafhime"')
     
     # Yuri
     @checks.has_permissions(PermissionLevel.REGULAR)
     @commands.command(name='Yuri', aliases=['yuri'])
     async def Yuri(self, ctx, *, ship="all"):
         
-        '''Sends a random yuri art, default is both ships, ships: `brsl`, `starch`, `kafhime`'''
-        
-        if ship == 'steven' or ship == 'stelle7':
+        '''Sends a random yuri art, default is both ships, ships: brsl, starch'''
+        if ship == 'steven':
             ship = 'starch'
         
         if ship == "all":
@@ -208,7 +223,6 @@ class Misc(commands.Cog):
                 ship = 'kafhime'
         
         file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
-        
         try:
             with open(file_name, 'r') as f:
                 links = json.load(f)
@@ -227,10 +241,10 @@ class Misc(commands.Cog):
     # Yuri Archive
     @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
     @commands.command()
-    async def archive(self, ctx):
+    async def archive(self, ctx, *, ship="brsl"):
         
         '''Archives the json files'''
-        await asyncio.sleep(0.5)
+        
         files = [ 
         discord.File('plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json'),
         discord.File('plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json'),
@@ -274,6 +288,6 @@ class Misc(commands.Cog):
                 await message.add_reaction('✅')
         
         await self.bot.process_commands(message)
-            
+        
 async def setup(bot):
     await bot.add_cog(Misc(bot))
