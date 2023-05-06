@@ -262,7 +262,6 @@ class Misc(commands.Cog):
 
         # Check if the message is from one of the threads aforementioned
         if message.channel.id == brsl_channel_id or message.channel.id == starch_channel_id or message.channel.id == kafhime_channel_id:
-            await asyncio.sleep(0.5)
             if message.embeds and message.type != discord.MessageType.reply and 'tenor.com' not in message.content:
                 # Get the corresponding JSON file name
                 # maybe we should change this to a "switch" type statement :yello:
