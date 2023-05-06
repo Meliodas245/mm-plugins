@@ -253,8 +253,9 @@ class Misc(commands.Cog):
         await ctx.reply(files=files)
 
     #Listener to autofetch yuri from thread
-    @commands.Cog.listener()
-    async def on_message(self,message):
+    # I dont want to fix this again -jej
+    @commands.Cog.listener("on_message")
+    async def food(self,message):
         #Set thread's ids (same as fetch_yuri_command)
         brsl_channel_id = 1101627790492708984   # Replace this id with brsl thread id (already done)
         starch_channel_id = 1101776593422127144 # Replace this id with starch thread id (already done)
@@ -280,12 +281,15 @@ class Misc(commands.Cog):
                         url = json.load(f)
                 except FileNotFoundError: #just in case again 
                     url = []
-
+                
                 with open(file_name, 'w') as f:
                     url[f'url{len(url)}'] = message.content
                     json.dump(url, f, indent=4)
-
+                
+                # Twitter verification checkmark :yello:
                 await message.add_reaction('✅')
+        
+        await self.bot.process_commands(message)
         
 async def setup(bot):
     await bot.add_cog(Misc(bot))
