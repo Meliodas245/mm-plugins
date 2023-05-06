@@ -178,7 +178,7 @@ class Misc(commands.Cog):
             with open(file_name, 'r') as f:
                 url = json.load(f)
             
-            if len(url) < 1:
+            if len(url) <= 1:
                 message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
                 await ctx.send(f'fetched {message_count} {ship} links')
             
