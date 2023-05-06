@@ -166,7 +166,7 @@ class Misc(commands.Cog):
             },
             {
                 'ship' : 'kafhime',
-                'channel_id' : 1101627790492708984
+                'channel_id' : 1103593594440396810
             }            
         ]
 
@@ -181,11 +181,9 @@ class Misc(commands.Cog):
             if len(url) < 1:
                 message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
                 await ctx.reply(f'fetched {message_count} {ship} links')
+            
             else:
                 await ctx.reply(f'already fetched, new messages are automatically fetched')
-
-        else:
-            await ctx.reply('specify the ship to fetch as "brsl", "starch" or "kafhime"')
     
     # Yuri
     @checks.has_permissions(PermissionLevel.REGULAR)
