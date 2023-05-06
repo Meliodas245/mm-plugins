@@ -180,10 +180,11 @@ class Misc(commands.Cog):
             
             if len(url) < 1:
                 message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
-                await ctx.reply(f'fetched {message_count} {ship} links')
+                await ctx.send(f'fetched {message_count} {ship} links')
             
-            else:
-                await ctx.reply(f'already fetched, new messages are automatically fetched')
+            #wanted to clean up the code omg
+            #else:
+            #    await ctx.reply(f'already fetched, new messages are automatically fetched')
     
     # Yuri
     @checks.has_permissions(PermissionLevel.REGULAR)
