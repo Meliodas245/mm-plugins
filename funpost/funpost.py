@@ -173,12 +173,12 @@ class Misc(commands.Cog):
         for gay in ships_sailed:
             ship = gay.ship
             channel_id = gay.channel_id
+            file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
             
             with open(file_name, 'r') as f:
                 url = json.load(f)
             
             if len(url) < 1:
-                file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
                 message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
                 await ctx.reply(f'fetched {message_count} {ship} links')
             else:
