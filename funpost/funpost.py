@@ -171,8 +171,8 @@ class Misc(commands.Cog):
         ]
 
         for gay in ships_sailed:
-            ship = gay.ship
-            channel_id = gay.channel_id
+            ship = gay['ship']
+            channel_id = gay['channel_id']
             file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
             
             with open(file_name, 'r') as f:
