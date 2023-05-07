@@ -28,7 +28,6 @@ async def fetch_yuri_messages(bot, channel_id, ship):
         # UNIQUE MESSAGES
         messages = list(set(messages))
 
-        print(messages)
         file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
 
         # Fetch the links
@@ -253,7 +252,7 @@ class Misc(commands.Cog):
 
         # Check if the message is from one of the threads aforementioned
         if message.channel.id in bot_dev_food:
-            await asyncio.sleep(0.8) #not noice
+            await asyncio.sleep(0.5) #not noice
             if message.embeds and message.type != discord.MessageType.reply and 'tenor.com' not in message.content:
                 # Get the corresponding JSON file name
                 # maybe we should change this to a "switch" type statement :yello: [DONE]
@@ -261,10 +260,10 @@ class Misc(commands.Cog):
                 
                 match message.channel.id:
                     case 1101776593422127144: # STARCH
-                        file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json"
+                        file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json"
 
                     case 1101627790492708984: # BRONSEELE
-                        file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json" 
+                        file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json" 
 
                     case 1103593594440396810: # KAFHIME
                         file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_kafhime.json" 
@@ -284,7 +283,7 @@ class Misc(commands.Cog):
                 # Twitter verification checkmark :yello:
                 await message.add_reaction('✅')
         
-            await self.bot.process_commands(message)
+            #await self.bot.process_commands(message)
         
 async def setup(bot):
     await bot.add_cog(Misc(bot))
