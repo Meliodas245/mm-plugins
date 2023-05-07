@@ -162,13 +162,12 @@ class Misc(commands.Cog):
         
         channel_id = None
        
-        match ship:
-            case "starch":
-                channel_id = 1101776593422127144 # STARCH
-            case "brsl":
-                channel_id = 1101627790492708984 # BRONSEELE
-            case "kafhime":
-                channel_id = 1103593594440396810 # KAFHIME
+        if ship == "starch":
+            channel_id = 1101776593422127144 # STARCH
+        elif ship == "brsl":
+             channel_id = 1101627790492708984 # BRONSEELE
+        elif ship == "kafhime":
+             channel_id = 1103593594440396810 # KAFHIME
         
         if channel_id:
             # PREVENT DUPLICATION
@@ -199,14 +198,12 @@ class Misc(commands.Cog):
         if ship == "all":
             num = random.randint(0,2)
             # starch True ship
-            # this can be changed to a switch type statement [DONE]
-            match num:
-                case 0:
-                    ship = 'starch'
-                case 1:
-                    ship = 'brsl'
-                case _:
-                    ship = 'kafhime'
+            if num == 0:
+                ship = 'starch'
+            elif num == 1:
+                ship = 'brsl'
+            else:
+                ship = 'kafhime'
         
         file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
         try:
@@ -258,15 +255,14 @@ class Misc(commands.Cog):
                 # maybe we should change this to a "switch" type statement :yello: [DONE]
                 file_name = ""
                 
-                match message.channel.id:
-                    case 1101776593422127144: # STARCH
-                        file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json"
+                if message.channel.id == bot_dev_food[0]:
+                    file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json"
 
-                    case 1101627790492708984: # BRONSEELE
-                        file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json" 
+                elif message.channel.id == bot_dev_food[1]:
+                    file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json" 
 
-                    case 1103593594440396810: # KAFHIME
-                        file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_kafhime.json" 
+                elif message.channel.id == bot_dev_food[2]:
+                    file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_kafhime.json" 
                         
 
                 # fetch the content of the message
