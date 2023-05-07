@@ -25,6 +25,10 @@ async def fetch_yuri_messages(bot, channel_id, ship):
             if message.embeds and message.type != discord.MessageType.reply and 'tenor.com' not in message.content:
                 messages.append(message.content)
         
+        # UNIQUE MESSAGES
+        messages = list(set(messages))
+
+        print(messages)
         file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
 
         # Fetch the links
@@ -37,8 +41,9 @@ async def fetch_yuri_messages(bot, channel_id, ship):
         # Write to file
         for link in messages:
             with open(file_name, 'w') as f:
-                url[f'url{len(url)}'] = extractor.find_urls(link, check_dns=True, with_schema_only=True)[0] # get domains with schema only
-                json.dump(url, f, indent=4)
+                if link != '':
+                    url[f'url{len(url)}'] = extractor.find_urls(link, check_dns=True, with_schema_only=True)[0]
+                    json.dump(url, f, indent=4)
         
         return len(messages)
     
@@ -149,58 +154,39 @@ class Misc(commands.Cog):
     # Yuri commands
     
     #fetch messages from threads
+    
     @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
     @commands.command(name='fetchYuri',aliases = ['fetchyuri','fetchgay'])
     async def fetch_yuri_command(self, ctx, *, ship="brsl"):
         
         '''Fetched the links in the relative ship thread, only can be run once.'''
         
-        if ship == "starch":
-            # PREVENT DUPLICATION
-            # Fetch the links
-            file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
-            with open(file_name, 'r') as f:
-                url = json.load(f)
-
-            if len(url) == 1:  
-                channel_id = 1101776593422127144 # replace this id with starch thread id (done)
-                message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
-                await ctx.reply(f'fetched {message_count} starch links')
-            else:
-                await ctx.reply(f'already fetched, new messages are automatically fetched')
-
-        elif ship == "brsl":
-            # PREVENT DUPLICATION
-            # Fetch the links
-            file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
-            with open(file_name, 'r') as f:
-                url = json.load(f)
-            
-            if len(url) == 0:
-                channel_id = 1101627790492708984  # replace this id with brsl thread id (done)
-                message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
-                await ctx.reply(f'fetched {message_count} brsl links')
-
-            else:
-                await ctx.reply(f'already fetched, new messages are automatically fetched')
+        channel_id = None
+       
+        match ship:
+            case "starch":
+                channel_id = 1101776593422127144 # STARCH
+            case "brsl":
+                channel_id = 1101627790492708984 # BRONSEELE
+            case "kafhime":
+                channel_id = 1103593594440396810 # KAFHIME
         
-        elif ship == "kafhime":
+        if channel_id:
             # PREVENT DUPLICATION
             # Fetch the links
             file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
             with open(file_name, 'r') as f:
                 url = json.load(f)
-            
-            if len(url) == 0:
-                channel_id = 1103593594440396810  # replace this id with kafhime thread id (done)
-                message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
-                await ctx.reply(f'fetched {message_count} kafhime links')
 
+            if len(url) <= 1:
+                message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
+                await ctx.reply(f'fetched {message_count} {ship} links')
+            
             else:
-                await ctx.reply(f'already fetched, new messages are automatically fetched')
+                await ctx.reply(f'already fetched {ship}, new messages are automatically fetched')
         
         else:
-            await ctx.reply('specify the ship to fetch as "brsl", "starch" or "kafhime"')
+            await ctx.reply('specify the ship to fetch as `brsl`, `starch` or `kafhime`')
     
     # Yuri
     @checks.has_permissions(PermissionLevel.REGULAR)
@@ -214,13 +200,14 @@ class Misc(commands.Cog):
         if ship == "all":
             num = random.randint(0,2)
             # starch True ship
-            # this can be changed to a switch type statement 
-            if num == 1:
-                ship = 'starch'
-            elif num == 2:
-                ship = 'brsl'
-            else:
-                ship = 'kafhime'
+            # this can be changed to a switch type statement [DONE]
+            match num:
+                case 0:
+                    ship = 'starch'
+                case 1:
+                    ship = 'brsl'
+                case _:
+                    ship = 'kafhime'
         
         file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
         try:
@@ -248,7 +235,8 @@ class Misc(commands.Cog):
         files = [ 
         discord.File('plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json'),
         discord.File('plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json'),
-        discord.File('plugins/Meliodas245/mm-plugins/funpost-master/links_kafhime.json')
+        discord.File('plugins/Meliodas245/mm-plugins/funpost-master/links_kafhime.json'),
+        discord.File('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json')
         ]
         await ctx.reply(files=files)
 
@@ -257,22 +245,29 @@ class Misc(commands.Cog):
     @commands.Cog.listener("on_message")
     async def food(self,message):
         #Set thread's ids (same as fetch_yuri_command)
-        brsl_channel_id = 1101627790492708984   # Replace this id with brsl thread id (already done)
-        starch_channel_id = 1101776593422127144 # Replace this id with starch thread id (already done)
-        kafhime_channel_id = 1103593594440396810 # Replace this id with kafhime thread id (done)
+        bot_dev_food = [
+            1101776593422127144, # STARCH
+            1101627790492708984, # BRONSEELE
+            1103593594440396810  # KAFHIME
+        ]
 
         # Check if the message is from one of the threads aforementioned
-        if message.channel.id == brsl_channel_id or message.channel.id == starch_channel_id or message.channel.id == kafhime_channel_id:
+        if message.channel.id in bot_dev_food:
             await asyncio.sleep(0.8) #not noice
             if message.embeds and message.type != discord.MessageType.reply and 'tenor.com' not in message.content:
                 # Get the corresponding JSON file name
-                # maybe we should change this to a "switch" type statement :yello:
-                if message.channel.id == brsl_channel_id:
-                    file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json"  
-                elif message.channel.id == starch_channel_id :
-                    file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json" 
-                else:
-                    file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_kafhime.json" 
+                # maybe we should change this to a "switch" type statement :yello: [DONE]
+                file_name = ""
+                
+                match message.channel.id:
+                    case 1101776593422127144: # STARCH
+                        file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_brsl.json"
+
+                    case 1101627790492708984: # BRONSEELE
+                        file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_starch.json" 
+
+                    case 1103593594440396810: # KAFHIME
+                        file_name = "plugins/Meliodas245/mm-plugins/funpost-master/links_kafhime.json" 
                         
 
                 # fetch the content of the message
