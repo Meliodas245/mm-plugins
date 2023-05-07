@@ -278,8 +278,7 @@ class Misc(commands.Cog):
                 
                 # Twitter verification checkmark :yello:
                 await message.add_reaction('✅')
-        
-            #await self.bot.process_commands(message)
+                await self.bot.process_commands(message)
         
 async def setup(bot):
     await bot.add_cog(Misc(bot))
