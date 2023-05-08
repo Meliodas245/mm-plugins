@@ -249,7 +249,7 @@ class Misc(commands.Cog):
 
         # Check if the message is from one of the threads aforementioned
         if message.channel.id in bot_dev_food:
-            await asyncio.sleep(0.5) #not noice
+            await asyncio.sleep(1.5) #not noice
             if message.embeds and message.type != discord.MessageType.reply and 'tenor.com' not in message.content:
                 # Get the corresponding JSON file name
                 # maybe we should change this to a "switch" type statement :yello: [DONE]
