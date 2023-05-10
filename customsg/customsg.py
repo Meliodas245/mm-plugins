@@ -17,7 +17,7 @@ class CustomMsg(commands.Cog):
             await message.channel.send('you mean g*pard')
             await self.bot.process_commands(message)
         # sorry not sorry -jej
-        elif 'french' in discord.utils.remove_markdown(message.content.lower()) or discord.utils.remove_markdown(message.content.lower()):
+        elif 'french' in discord.utils.remove_markdown(message.content.lower()) or 'france' in discord.utils.remove_markdown(message.content.lower()):
             sticker = await discord.Client.fetch_sticker(self.bot,1089453469661937704)
             await message.channel.send(stickers = (sticker, sticker))
             
