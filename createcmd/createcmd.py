@@ -19,7 +19,7 @@ class Custom(commands.Cog):
         self.bot = bot
 
     # Creating custom commands
-    @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
+    @checks.has_permissions(PermissionLevel.MODERATOR)
     @commands.command()
     async def create(self, ctx, cmd, *, txt):
         
@@ -46,7 +46,7 @@ class Custom(commands.Cog):
             await ctx.send(embed=embed)
 
     # Delete custom commands
-    @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
+    @checks.has_permissions(PermissionLevel.MODERATOR)
     @commands.command()
     async def cdelete(self, ctx, cmd):
         
@@ -67,7 +67,7 @@ class Custom(commands.Cog):
         await ctx.send(embed=embed)
         
     # Update custom command
-    @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
+    @checks.has_permissions(PermissionLevel.MODERATOR)
     @commands.command()
     async def cupdate(self, ctx, cmd, *, txt):
 
@@ -116,7 +116,7 @@ class Custom(commands.Cog):
         for i in range(0, len(commands), 5):
             embed = discord.Embed(
                 title = 'List of Custom Commands',
-                description = '\n'.join(commands[i:i+5]),
+                description = '\n'.join(commands[i:i+10]),
                 colour = discord.Colour.random()
             )
             embed.set_footer(text=f"Total of {len(commands)} custom commands")
