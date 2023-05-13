@@ -4,12 +4,10 @@ import json
 import asyncio
 from urlextract import URLExtract
 from discord.ext import commands
-from urllib.request import urlopen
 from core import checks
 from core.models import PermissionLevel
 
 # List of commands here:
-# ?advice
 # ?gaydar
 # ?magic8ball
 # ?fetchYuri
@@ -41,7 +39,7 @@ async def fetch_yuri_messages(bot, channel_id, ship):
         for link in messages:
             with open(file_name, 'w') as f:
                 if link != '':
-                    url[f'url{len(url)}'] = extractor.find_urls(link, check_dns=True, with_schema_only=True)[0]
+                    url[f'url{len(url)}'] = extractor.find_urls(link, with_schema_only=True)[0]
                     json.dump(url, f, indent=4)
         
         return len(messages)
@@ -51,54 +49,55 @@ async def fetch_yuri_messages(bot, channel_id, ship):
 #--------------------------------------------------------------------------------------------------------------------------------
 
 class Misc(commands.Cog):
+    
     """Funpost Plugin"""
+    
     def __init__(self, bot):
         self.bot = bot
-        self.footer = "coming from jej's spaghetti code 🍝"
-
-    # Advice
-    @checks.has_permissions(PermissionLevel.REGULAR)
-    @commands.command()
-    async def advice(self, ctx):
-
-        '''Have a random slip of advice~'''
-        
-        url = "https://api.adviceslip.com/advice"
-
-        r = urlopen(url)
-        adv = json.loads(r.read().decode('utf-8'))
-
-        embed = discord.Embed(
-            title = f"Have a random slip of advice~",
-            description = f"{adv['slip']['advice']}",
-            colour = discord.Colour.random()
-        )
-
-        embed.set_thumbnail(url="https://upload-os-bbs.hoyolab.com/upload/2022/08/24/fbfc78ea104a8a3294edbb04352138fb_2018653294500640692.png")
-        
-        await ctx.send(embed=embed)
 
     # Gaydar
     @checks.has_permissions(PermissionLevel.REGULAR)
-    @commands.command()
-    async def gaydar(self, ctx, member: commands.MemberConverter):
+    @commands.command(aliases=['gay', 'gae', 'gayrate'])
+    async def gaydar(self, ctx, member: commands.MemberConverter = None):
 
         '''🌈?'''
-
-        # self rate
+        
+        # self rate (actually works)
         if member is None:
             member = ctx.author
-        
-        num = random.randint(1, 10001)/100
+
+        num = random.randrange(10001)/100
 
         embed = discord.Embed(
             title = f"The 🏳️‍🌈 has decided...",
-            description = f"{member.name} is **{num}%** gae.",
+            description = f"{member.nick if member.nick else member.name} is **{num}%** gae.",
             colour = discord.Colour.random()
         )
         
-        embed.set_thumbnail(url="https://upload-bbs.mihoyo.com/upload/2022/06/12/2f55e1f199efc29f3c4e9076d3288365_7013897107954424230.png")
-        embed.set_footer(text=self.footer)
+        # why isn't there an official seele one or bronya, i couldn't find :skull: -jej
+        stickers = [
+            "https://static.wikia.nocookie.net/houkai-star-rail/images/d/db/Arlan_Sticker_01.png/revision/latest?cb=20230505074117",
+            "https://static.wikia.nocookie.net/houkai-star-rail/images/4/47/Asta_Sticker_01.png/revision/latest?cb=20230505074119",
+            "https://static.wikia.nocookie.net/houkai-star-rail/images/6/6a/Bailu_Sticker_02.png/revision/latest?cb=20230420184826",
+            "https://static.wikia.nocookie.net/houkai-star-rail/images/d/d4/Caelus_Sticker_02.png/revision/latest?cb=20230420195451",
+            "https://static.wikia.nocookie.net/houkai-star-rail/images/5/5c/Stelle_Sticker_02.png/revision/latest?cb=20230420195524",
+            "https://static.wikia.nocookie.net/houkai-star-rail/images/2/22/Dan_Heng_Sticker_01.png/revision/latest?cb=20230505074120",
+            "https://static.wikia.nocookie.net/houkai-star-rail/images/2/26/Herta_Sticker_01.png/revision/latest?cb=20230505074121",
+            "https://static.wikia.nocookie.net/houkai-star-rail/images/4/45/Himeko_Sticker_01.png/revision/latest?cb=20230505074123",
+            "https://static.wikia.nocookie.net/houkai-star-rail/images/c/c7/Jing_Yuan_Sticker_02.png/revision/latest?cb=20230420194038",
+            "https://static.wikia.nocookie.net/houkai-star-rail/images/6/6e/Kafka_Sticker_01.png/revision/latest?cb=20230505074126",
+            "https://static.wikia.nocookie.net/houkai-star-rail/images/2/28/Silver_Wolf_Sticker_01.png/revision/latest?cb=20230505074135",
+            "https://static.wikia.nocookie.net/houkai-star-rail/images/1/12/March_7th_Sticker_05.png/revision/latest?cb=20220425065144",
+            "https://static.wikia.nocookie.net/houkai-star-rail/images/5/5f/Serval_Sticker_01.png/revision/latest?cb=20230505074134"
+        ]
+
+        embed.set_thumbnail(url=random.choice(stickers))
+        
+        # funi footer if anyone gets either
+        if num == 0:
+            embed.set_footer(text=f'[{member.nick} is now a Certified Hetero]')
+        elif num == 100:
+            embed.set_footer(text=f'[{member.nick} is now a Certified Homosexual]')
         
         await ctx.send(embed=embed)
 
@@ -152,10 +151,10 @@ class Misc(commands.Cog):
             
     # Yuri commands
     
-    #fetch messages from threads
+    # fetch messages from threads
     
-    @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
-    @commands.command(name='fetchYuri',aliases = ['fetchyuri','fetchgay'])
+    @checks.has_permissions(PermissionLevel.MODERATOR)
+    @commands.command(name='fetchYuri',aliases = ['yurifetch','fetchyuri','fetchgay'])
     async def fetch_yuri_command(self, ctx, *, ship="brsl"):
         
         '''Fetched the links in the relative ship thread, only can be run once.'''
@@ -221,8 +220,8 @@ class Misc(commands.Cog):
         except FileNotFoundError:
             await ctx.reply(f'try writing the ships like: "brsl", "starch" or "kafhime"')
     
-    # Yuri Archive
-    @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
+    # Yuri + Commands Archive
+    @checks.has_permissions(PermissionLevel.MODERATOR)
     @commands.command()
     async def archive(self, ctx, *, ship="brsl"):
         
@@ -236,7 +235,7 @@ class Misc(commands.Cog):
         ]
         await ctx.reply(files=files)
 
-    #Listener to autofetch yuri from thread
+    # Listener to autofetch yuri from thread
     # I dont want to fix this again -jej
     @commands.Cog.listener("on_message")
     async def food(self,message):
@@ -252,7 +251,7 @@ class Misc(commands.Cog):
             await asyncio.sleep(1.5) #not noice
             if message.embeds and message.type != discord.MessageType.reply and 'tenor.com' not in message.content:
                 # Get the corresponding JSON file name
-                # maybe we should change this to a "switch" type statement :yello: [DONE]
+
                 file_name = ""
                 
                 if message.channel.id == bot_dev_food[0]:
@@ -272,9 +271,14 @@ class Misc(commands.Cog):
                 except FileNotFoundError: #just in case again 
                     url = []
                 
+                # Extract only the urls
+                extractor = URLExtract()
+                
+                # Ignores the comments (i hope)
                 with open(file_name, 'w') as f:
-                    url[f'url{len(url)}'] = message.content
-                    json.dump(url, f, indent=4)
+                    if message.content != '':
+                        url[f'url{len(url)}'] = extractor.find_urls(message.content, with_schema_only=True)[0]
+                        json.dump(url, f, indent=4)
                 
                 # Twitter verification checkmark :yello:
                 await message.add_reaction('✅')
