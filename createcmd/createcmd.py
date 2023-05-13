@@ -19,7 +19,7 @@ class Custom(commands.Cog):
         self.bot = bot
 
     # Creating custom commands
-    @checks.has_permissions(PermissionLevel.MODERATOR)
+    @checks.has_permissions(PermissionLevel.SUPPORTER)
     @commands.command()
     async def create(self, ctx, cmd, *, txt):
         
@@ -46,7 +46,7 @@ class Custom(commands.Cog):
             await ctx.send(embed=embed)
 
     # Delete custom commands
-    @checks.has_permissions(PermissionLevel.MODERATOR)
+    @checks.has_permissions(PermissionLevel.SUPPORTER)
     @commands.command()
     async def cdelete(self, ctx, cmd):
         
