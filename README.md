@@ -3,7 +3,6 @@ Plugin and Commands list:
 - welcome
 - verification
 - funpost
-    - advice
     - gaydar
     - magic8ball
     - fetchYuri
