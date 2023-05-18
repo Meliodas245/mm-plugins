@@ -46,3 +46,4 @@ class ErrorHandler(commands.Cog):
                 description=f"<:seelecry:1085625830010540042> Something went wrong! (`{repr(err)}`)",
                 colour=discord.Colour.red()
             ))
+            raise err

@@ -14,6 +14,7 @@ Plugin and Commands list:
     - creload
     - clist
 - customsg
+- errorhandler
 
 # Plugin Installation
 ```
