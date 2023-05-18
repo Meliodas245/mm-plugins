@@ -1,6 +1,5 @@
 import os
 from asyncio import TimeoutError
-from datetime import timedelta
 from random import randint
 from traceback import format_exception
 from uuid import uuid4
@@ -15,24 +14,26 @@ LOG_TO_FILE = True
 
 
 class ErrorHandler(commands.Cog):
-    """The 'uh oh' plugin, for when everything does wrong. (handles errors)"""
+    """The 'uh oh' plugin, for when everything does wrong."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        if not os.path.exists("plugins/Meliodas245/mm-plugins/errorhandler-master/logs"):
+            os.makedirs("plugins/Meliodas245/mm-plugins/errorhandler-master/logs")
 
     @checks.has_permissions(PermissionLevel.SUPPORTER)
     @commands.command()
     async def viewlog(self, ctx: commands.Context, uuid: str):
         """View a log file"""
         try:
-            with open(f"plugins/Meliodas245/mm-plugins/errorhandler-master/{uuid}.log") as f:
+            with open(f"plugins/Meliodas245/mm-plugins/errorhandler-master/logs/{uuid}.log") as f:
                 log = f.read()
-        except FileNotFoundError:
+        except (FileNotFoundError, OSError):
             await ctx.reply(f"Log `{uuid}` not found")
-        if len(log) > 3994:
-            await ctx.reply(files=[discord.File(f"plugins/Meliodas245/mm-plugins/errorhandler-master/{uuid}.log")])
+        if len(log) > 1994:
+            await ctx.reply(files=[discord.File(f"plugins/Meliodas245/mm-plugins/errorhandler-master/logs/{uuid}.log")])
         else:
-            await ctx.reply(embed=discord.Embed(title=uuid, description=f"```{log}```", colour=discord.Colour.random()))
+            await ctx.reply(f"```{log}```")
 
     @checks.has_permissions(PermissionLevel.SUPPORTER)
     @commands.command()
@@ -42,9 +43,9 @@ class ErrorHandler(commands.Cog):
         if ".." in uuid:
             return await ctx.reply("No. Just no.")
         try:
-            os.remove(f"plugins/Meliodas245/mm-plugins/errorhandler-master/{uuid}.log")
+            os.remove(f"plugins/Meliodas245/mm-plugins/errorhandler-master/logs/{uuid}.log")
             return await ctx.reply(f"Log `{uuid}` deleted")
-        except FileNotFoundError:
+        except (FileNotFoundError, OSError):
             return await ctx.reply(f"Log `{uuid}` not found")
 
     @checks.has_permissions(PermissionLevel.MODERATOR)
@@ -66,7 +67,7 @@ class ErrorHandler(commands.Cog):
 
         count = 0
         for file in os.listdir("plugins/Meliodas245/mm-plugins/errorhandler-master"):
-            os.remove(f"plugins/Meliodas245/mm-plugins/errorhandler-master/{file}")
+            os.remove(f"plugins/Meliodas245/mm-plugins/errorhandler-master/logs/{file}")
             count += 1
 
         await ctx.reply(f"Successfully wiped {count} logs.")
@@ -102,22 +103,20 @@ class ErrorHandler(commands.Cog):
             pass
         else:
             embed = discord.Embed(
-                description="<:seelecry:1085625830010540042> Something went wrong! "
-                            "Please report this to the developers.",
+                title="<:seelecry:1085625830010540042> Something went wrong!",
+                description="Please report this to the developers.",
                 colour=discord.Colour.red()
             )
             if LOG_TO_FILE:
                 uuid = uuid4()  # Generate a random UUID, if this conflicts, you should buy a lottery ticket...
-                with open(f"plugins/Meliodas245/mm-plugins/errorhandler-master/{uuid}.log", "w") as f:
-                    log_content = f"""
-                    User: {ctx.author} ({ctx.author.id})
-                    Command: {ctx.command}
-                    Args: {ctx.args} | {ctx.kwargs}
-                    Message: {repr(ctx.message.content)}
-                    Message URL: {ctx.message.jump_url}
-                    Traceback:
-                    {''.join(format_exception(type(err), err, err.__traceback__))}
-                    """
+                with open(f"plugins/Meliodas245/mm-plugins/errorhandler-master/logs/{uuid}.log", "w") as f:
+                    log_content = f"ID: {uuid}\n" \
+                                  f"User: {ctx.author} ({ctx.author.id})\n" \
+                                  f"Command: {ctx.command}\n" \
+                                  f"Args: {repr(ctx.args)} | {repr(ctx.kwargs)}\n" \
+                                  f"Message: {repr(ctx.message.content)}\n" \
+                                  f"Message URL: {ctx.message.jump_url}\n\n" \
+                                  f"{''.join(format_exception(type(err), err, err.__traceback__))}"
                     f.write(log_content)
                 embed.add_field(name="Error ID", value=uuid, inline=False)
             await ctx.send(embed=embed)
