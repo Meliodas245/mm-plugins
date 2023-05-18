@@ -13,6 +13,7 @@ from core.models import PermissionLevel
 
 LOG_TO_FILE = True
 USERNAME_REGEX = compile(r"File \"/home/.*?/")
+DEVELOPER_ROLE = 1087928500893265991
 
 
 class ErrorHandler(commands.Cog):
@@ -23,14 +24,14 @@ class ErrorHandler(commands.Cog):
         if not os.path.exists("plugins/Meliodas245/mm-plugins/errorhandler-master/logs"):
             os.makedirs("plugins/Meliodas245/mm-plugins/errorhandler-master/logs")
 
-    @checks.has_permissions(PermissionLevel.SUPPORTER)
     @commands.command()
+    @commands.check_any(commands.has_role(DEVELOPER_ROLE), checks.has_permissions(PermissionLevel.SUPPORTER))
     async def raiseerror(self, ctx: commands.Context):
         """Raises an error for testing purposes"""
         raise Exception("This is a test error")
 
-    @checks.has_permissions(PermissionLevel.SUPPORTER)
     @commands.command(aliases=["vlog"])
+    @commands.check_any(commands.has_role(DEVELOPER_ROLE), checks.has_permissions(PermissionLevel.SUPPORTER))
     async def viewlog(self, ctx: commands.Context, uuid: str):
         """View a log file"""
         try:
@@ -43,8 +44,8 @@ class ErrorHandler(commands.Cog):
         else:
             await ctx.reply(f"```{log}```")
 
-    @checks.has_permissions(PermissionLevel.SUPPORTER)
     @commands.command(aliases=["dlog", "dellog", "delog"])
+    @commands.check_any(commands.has_role(DEVELOPER_ROLE), checks.has_permissions(PermissionLevel.SUPPORTER))
     async def deletelog(self, ctx: commands.Context, uuid: str):
         """Deletes a log file"""
         # This is run by trusted users, so not doing too much checking
@@ -56,8 +57,8 @@ class ErrorHandler(commands.Cog):
         except (FileNotFoundError, OSError):
             return await ctx.reply(f"Log `{uuid}` not found")
 
-    @checks.has_permissions(PermissionLevel.MODERATOR)
     @commands.command(aliases=["wipelog"])
+    @checks.has_permissions(PermissionLevel.MODERATOR)
     async def wipelogs(self, ctx: commands.Context):
         """Wipes ALL log files (use with caution)"""
         # Generate a random 6 digit confirmation code to prevent accidental wipes
