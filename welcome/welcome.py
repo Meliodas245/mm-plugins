@@ -11,6 +11,7 @@ class Welcome(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
+        guild = member.guild
         channel = self.bot.get_channel(CHANNEL_ID)
         if channel is not None:
             embed = discord.Embed(
