@@ -11,8 +11,9 @@ class Logs(commands.Cog):
     
     @checks.has_permissions(PermissionLevel.MODERATOR)
     @commands.command()
-    async def getlogs(self, ctx):
+    async def logs(self, ctx):
         
+        file = "be wagafasdf"
         for filename in os.listdir("./temp"):
             if filename.endswith(".txt"):
                 file = filename
