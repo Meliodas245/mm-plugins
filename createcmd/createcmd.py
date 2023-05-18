@@ -133,7 +133,6 @@ class Custom(commands.Cog):
 
         if cmd in self.custom_commands.keys():
             await message.channel.send(self.custom_commands[cmd])
-            await self.bot.process_commands(message)
 
 
 async def setup(bot):
