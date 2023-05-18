@@ -79,23 +79,21 @@ class ErrorHandler(commands.Cog):
         """
         # A pass just means we don't want to respond, and want the error to be silently ignored.
         # Any error not explicitly checked here will be handled as a generic error, and re-raised if not logged
+        # Currently all command-input related errors are pass-ed as the upstream handler already handles them
         if isinstance(err, commands.MissingRequiredArgument):
-            await ctx.send(f"**Missing Required Argument**: `{err.param.name}`")
+            pass
         elif isinstance(err, commands.BadArgument):
             pass
         elif isinstance(err, commands.CommandNotFound):
             pass
         elif isinstance(err, commands.CommandOnCooldown):
-            await ctx.send("This command is on cooldown, try again in "
-                           f"**{str(timedelta(seconds=err.retry_after)).split('.')[0]}**")
+            pass
         elif isinstance(err, commands.NotOwner):
             pass
         elif isinstance(err, commands.MissingPermissions):
             pass
         elif isinstance(err, commands.BotMissingPermissions):
-            await ctx.send("**Bot Missing Permissions**: I need ~~more Eidolons~~ "
-                           f"`{', '.join(i.replace('_', ' ') for i in err.missing_permissions)}`"
-                           " to do this")
+            pass
         elif isinstance(err, commands.NoPrivateMessage):
             pass
         elif isinstance(err, commands.PrivateMessageOnly):
