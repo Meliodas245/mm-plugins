@@ -125,3 +125,7 @@ class ErrorHandler(commands.Cog):
             await ctx.send(embed=embed)
             if not LOG_TO_FILE:
                 raise err
+
+
+async def setup(bot):
+    await bot.add_cog(ErrorHandler(bot))
