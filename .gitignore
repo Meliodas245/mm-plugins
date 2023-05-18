@@ -4,3 +4,5 @@
 venv/
 # modmail-dev.core - Used for IDE IntelliSense
 core/
+# Development Testing Copy/Environment
+test/
