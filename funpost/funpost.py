@@ -101,18 +101,18 @@ class Misc(commands.Cog):
 
         embed = discord.Embed(
             title=f"The 🏳️‍🌈 has decided...",
-            description=f"{member.nick if member.nick else member.name} is **{num}%** gae.",
+            description=f"{member.display_name} is **{num}%** gae.",
             colour=discord.Colour.random()
         )
         embed.set_thumbnail(url=random.choice(GAY_STICKERS))
 
         # funi footer if anyone gets either
         if num == 0:
-            embed.set_footer(text=f'[{member.nick} is now a Certified Hetero]')
+            embed.set_footer(text=f'[{member.display_name} is now a Certified Hetero]')
             role = discord.utils.get(ctx.guild.roles, id=HETERO_ROLE)
             await member.add_roles(role)
         elif num == 100:
-            embed.set_footer(text=f'[{member.nick} is now a Certified Gay]')
+            embed.set_footer(text=f'[{member.display_name} is now a Certified Gay]')
             role = discord.utils.get(ctx.guild.roles, id=GAY_ROLE)
             await member.add_roles(role)
 
