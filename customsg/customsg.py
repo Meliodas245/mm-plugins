@@ -19,7 +19,6 @@ class CustomMsg(commands.Cog):
                 'france' in discord.utils.remove_markdown(message.content.lower()):
             sticker = await discord.Client.fetch_sticker(self.bot,1089453469661937704)
             await message.channel.send(stickers=(sticker, sticker))
-        await self.bot.process_commands(message)
 
 
 async def setup(bot):
