@@ -166,7 +166,7 @@ class Misc(commands.Cog):
                 'specify the ship to fetch as ' + ", ".join([f"`{i}`" for i in SHIP_CHANNELS.keys()]))
         channel_id = SHIP_CHANNELS[ship]
 
-        with ctx.typing():
+        async with ctx.typing():
             # Fetch the links
             file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
             with open(file_name, 'r') as f:
