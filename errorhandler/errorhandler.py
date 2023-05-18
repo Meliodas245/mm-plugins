@@ -1,6 +1,7 @@
 import os
 from asyncio import TimeoutError
 from random import randint
+from re import compile
 from traceback import format_exception
 from uuid import uuid4
 
@@ -11,6 +12,7 @@ from core import checks
 from core.models import PermissionLevel
 
 LOG_TO_FILE = True
+USERNAME_REGEX = compile(r"File \"/home/.*?/")
 
 
 class ErrorHandler(commands.Cog):
@@ -115,6 +117,9 @@ class ErrorHandler(commands.Cog):
             )
             if LOG_TO_FILE:
                 uuid = uuid4()  # Generate a random UUID, if this conflicts, you should buy a lottery ticket...
+                traceback = "".join(format_exception(type(err), err, err.__traceback__))
+                # Hide the hoster's username (assuming Linux system) for privacy reasons
+                traceback = USERNAME_REGEX.sub("File \"/home/*****/", traceback)
                 with open(f"plugins/Meliodas245/mm-plugins/errorhandler-master/logs/{uuid}.log", "w") as f:
                     log_content = f"ID: {uuid}\n" \
                                   f"User: {ctx.author} ({ctx.author.id})\n" \
@@ -122,7 +127,7 @@ class ErrorHandler(commands.Cog):
                                   f"Args: {repr(ctx.args)} | {repr(ctx.kwargs)}\n" \
                                   f"Message: {repr(ctx.message.content)}\n" \
                                   f"Message URL: {ctx.message.jump_url}\n\n" \
-                                  f"{''.join(format_exception(type(err), err, err.__traceback__))}"
+                                  f"{traceback}"
                     f.write(log_content)
                 embed.add_field(name="Error ID", value=uuid, inline=False)
             await ctx.send(embed=embed)
