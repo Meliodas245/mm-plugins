@@ -12,7 +12,7 @@ class Logs(commands.Cog):
     @checks.has_permissions(PermissionLevel.MODERATOR)
     @commands.command()
     async def logs(self, ctx):
-        
+        # ignore this aight
         file = "be wagafasdf"
         for filename in os.listdir("./temp"):
             if filename.endswith(".txt"):
