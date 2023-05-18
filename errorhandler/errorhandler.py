@@ -22,7 +22,7 @@ class ErrorHandler(commands.Cog):
             os.makedirs("plugins/Meliodas245/mm-plugins/errorhandler-master/logs")
 
     @checks.has_permissions(PermissionLevel.SUPPORTER)
-    @commands.command()
+    @commands.command(aliases=["vlog"])
     async def viewlog(self, ctx: commands.Context, uuid: str):
         """View a log file"""
         try:
@@ -36,7 +36,7 @@ class ErrorHandler(commands.Cog):
             await ctx.reply(f"```{log}```")
 
     @checks.has_permissions(PermissionLevel.SUPPORTER)
-    @commands.command()
+    @commands.command(aliases=["dlog", "dellog", "delog"])
     async def deletelog(self, ctx: commands.Context, uuid: str):
         """Deletes a log file"""
         # This is run by trusted users, so not doing too much checking
