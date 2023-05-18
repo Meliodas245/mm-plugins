@@ -5,13 +5,13 @@ from core import checks
 from core.models import PermissionLevel
 
 
-class Logs(commands.Cog):
+class getLogs(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
     @checks.has_permissions(PermissionLevel.MODERATOR)
     @commands.command()
-    async def logs(self, ctx):
+    async def getlogs(self, ctx):
         # ignore this aight
         file = "be wagafasdf"
         for filename in os.listdir("./temp"):
@@ -25,4 +25,4 @@ class Logs(commands.Cog):
         await ctx.reply(files=files)
 
 async def setup(bot):
-    await bot.add_cog(Logs(bot))
+    await bot.add_cog(getLogs(bot))
