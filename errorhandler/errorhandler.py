@@ -66,7 +66,7 @@ class ErrorHandler(commands.Cog):
             return await ctx.reply("Timed out, logs have NOT been wiped")
 
         count = 0
-        for file in os.listdir("plugins/Meliodas245/mm-plugins/errorhandler-master"):
+        for file in os.listdir("plugins/Meliodas245/mm-plugins/errorhandler-master/logs"):
             os.remove(f"plugins/Meliodas245/mm-plugins/errorhandler-master/logs/{file}")
             count += 1
 
