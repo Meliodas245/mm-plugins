@@ -108,7 +108,7 @@ class ErrorHandler(commands.Cog):
             )
             if LOG_TO_FILE:
                 uuid = uuid4()  # Generate a random UUID, if this conflicts, you should buy a lottery ticket...
-                with open(f"plugins/Meliodas245/mm-plugins/errorhandler-master/{uuid}.log") as f:
+                with open(f"plugins/Meliodas245/mm-plugins/errorhandler-master/{uuid}.log", "w") as f:
                     log_content = f"""
                     User: {ctx.author} ({ctx.author.id})
                     Command: {ctx.command}
