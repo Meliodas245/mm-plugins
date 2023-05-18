@@ -22,6 +22,12 @@ class ErrorHandler(commands.Cog):
             os.makedirs("plugins/Meliodas245/mm-plugins/errorhandler-master/logs")
 
     @checks.has_permissions(PermissionLevel.SUPPORTER)
+    @commands.command
+    async def raiseerror(self, ctx: commands.Context):
+        """Raises an error for testing purposes"""
+        raise Exception("This is a test error")
+
+    @checks.has_permissions(PermissionLevel.SUPPORTER)
     @commands.command(aliases=["vlog"])
     async def viewlog(self, ctx: commands.Context, uuid: str):
         """View a log file"""
