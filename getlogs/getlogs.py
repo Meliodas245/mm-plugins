@@ -13,9 +13,9 @@ class getLogs(commands.Cog):
     @commands.command()
     async def getlogs(self, ctx):
         # ignore this aight
-        file = "be wagafasdf"
+
         for filename in os.listdir("./temp"):
-            if filename.endswith(".txt"):
+            if filename.endswith(".log"):
                 file = filename
         
         files = [ 
