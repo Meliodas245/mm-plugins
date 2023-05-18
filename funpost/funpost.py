@@ -30,8 +30,8 @@ GAY_STICKERS = [
     "https://static.wikia.nocookie.net/houkai-star-rail/images/1/12/March_7th_Sticker_05.png/revision/latest?cb=20220425065144",
     "https://static.wikia.nocookie.net/houkai-star-rail/images/5/5f/Serval_Sticker_01.png/revision/latest?cb=20230505074134"
 ]
-HETERO_ROLE = 1102518365861453885
-GAY_ROLE = 1102517987476504626
+HETERO_ROLE = 1108845861305339995
+GAY_ROLE = 1108845603338846339
 EIGHT_BALL_TITLES = [
     'Seele has decided..',
     'Seele is choosing..',
