@@ -13,6 +13,7 @@ from core.models import PermissionLevel
 # ?cdelete
 # ?clist
 # ?cupdate
+# ?creload
 
 
 COMMANDS_FILE = "plugins/Meliodas245/mm-plugins/createcmd-master/commands.json"
@@ -21,7 +22,7 @@ COMMANDS_FILE = "plugins/Meliodas245/mm-plugins/createcmd-master/commands.json"
 class Custom(commands.Cog):
     """Custom Commands~"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
         with open(COMMANDS_FILE) as f:
             self.custom_commands = json.load(f)
@@ -29,7 +30,7 @@ class Custom(commands.Cog):
     # Creating custom commands
     @checks.has_permissions(PermissionLevel.SUPPORTER)
     @commands.command()
-    async def create(self, ctx, cmd, *, txt):
+    async def create(self, ctx: commands.Context, cmd: str, *, txt: str):
         """Creates a custom command"""
         # Check if the custom command doesn't exist
         if f'?{cmd}' not in self.custom_commands.keys():
@@ -48,7 +49,7 @@ class Custom(commands.Cog):
     # Delete custom commands
     @checks.has_permissions(PermissionLevel.SUPPORTER)
     @commands.command()
-    async def cdelete(self, ctx, cmd):
+    async def cdelete(self, ctx: commands.Context, cmd: str):
         """Deletes a custom command"""
         if f"?{cmd}" not in self.custom_commands.keys():
             embed = discord.Embed(description="Command does not exist", colour=discord.Colour.red())
@@ -66,7 +67,7 @@ class Custom(commands.Cog):
     # Update custom command
     @checks.has_permissions(PermissionLevel.MODERATOR)
     @commands.command()
-    async def cupdate(self, ctx, cmd, *, txt):
+    async def cupdate(self, ctx: commands.Context, cmd: str, *, txt: str):
         """Updates a custom command"""
         # Check if the custom command exists
         if f'?{cmd}' in self.custom_commands.keys():
@@ -85,7 +86,7 @@ class Custom(commands.Cog):
     # List custom commands
     @checks.has_permissions(PermissionLevel.REGULAR)
     @commands.command()
-    async def clist(self, ctx):
+    async def clist(self, ctx: commands.Context):
         """List the custom commands"""
         custom_commands = list(self.custom_commands.keys())
 
@@ -115,7 +116,7 @@ class Custom(commands.Cog):
     # Reload commands from file
     @checks.has_permissions(PermissionLevel.MODERATOR)
     @commands.command()
-    async def creload(self, ctx):
+    async def creload(self, ctx: commands.Context):
         """
         Reloads the custom commands from file.
         This should only ever be used if a modification was done directly to the file (rather than through the bot)
@@ -126,7 +127,7 @@ class Custom(commands.Cog):
 
     # Executing custom commands
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
         # Get the custom command
         cmd = message.content.split(' ')[0]
 

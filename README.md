@@ -11,6 +11,7 @@ Plugin and Commands list:
     - create
     - cdelete
     - cupdate
+    - creload
     - clist
 - customsg
 
