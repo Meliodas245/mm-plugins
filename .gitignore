@@ -1,0 +1,8 @@
+# IDE Files
+.idea/
+# Virtual Environment
+venv/
+# modmail-dev.core - Used for IDE IntelliSense
+core/
+# Development Testing Copy/Environment
+test/
