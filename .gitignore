@@ -6,3 +6,7 @@ venv/
 core/
 # Development Testing Copy/Environment
 test/
+# Scripts for Development Use
+ds-*.bat
+ds-*.sh
+ds-*.py
