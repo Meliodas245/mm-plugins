@@ -17,7 +17,7 @@ DEVELOPER_ROLE = 1087928500893265991
 
 
 class ErrorHandler(commands.Cog):
-    """The 'uh oh' plugin, for when everything does wrong."""
+    """The 'uh oh' plugin, for when everything goes wrong."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
