@@ -40,10 +40,10 @@ class ErrorHandler(commands.Cog):
                 log = f.read()
         except (FileNotFoundError, OSError):
             await ctx.reply(f"Log `{uuid}` not found")
-        if len(log) > 1994:
+        if len(log) > 1984:
             await ctx.reply(files=[discord.File(f"{LOG_DIR}/{uuid}.log")])
         else:
-            await ctx.reply(f"```{log}```")
+            await ctx.reply(f"```asciidoc\n{log}```")
 
     @commands.command(aliases=["dlog", "dellog", "delog"])
     @commands.check_any(commands.has_role(DEVELOPER_ROLE), checks.has_permissions(PermissionLevel.SUPPORTER))
@@ -123,12 +123,14 @@ class ErrorHandler(commands.Cog):
                 # Hide the hoster's username (assuming Linux system) for privacy reasons
                 traceback = USERNAME_REGEX.sub("File \"/home/*****/", traceback)
                 with open(f"{LOG_DIR}/{uuid}.log", "w") as f:
-                    log_content = f"ID: {uuid}\n" \
-                                  f"User: {ctx.author} ({ctx.author.id})\n" \
-                                  f"Command: {ctx.command}\n" \
-                                  f"Args: {repr(ctx.args)} | {repr(ctx.kwargs)}\n" \
-                                  f"Message: {repr(ctx.message.content)}\n" \
-                                  f"Message URL: {ctx.message.jump_url}\n\n" \
+                    log_content = "= Info =\n" \
+                                  f"ID:: {uuid}\n" \
+                                  f"User:: {ctx.author} ({ctx.author.id})\n" \
+                                  f"Command:: {ctx.command}\n" \
+                                  f"Args:: {repr(ctx.args)}\n" \
+                                  f"Kwargs:: {repr(ctx.kwargs)}\n" \
+                                  f"Message:: {repr(ctx.message.content)}\n" \
+                                  f"Message URL:: {ctx.message.jump_url}\n\n= Traceback =\n" \
                                   f"{traceback}"
                     f.write(log_content)
                 embed.add_field(name="Error ID", value=uuid, inline=False)
