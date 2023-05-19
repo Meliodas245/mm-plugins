@@ -39,7 +39,7 @@ class ErrorHandler(commands.Cog):
             with open(f"{LOG_DIR}/{uuid}.log") as f:
                 log = f.read()
         except (FileNotFoundError, OSError):
-            await ctx.reply(f"Log `{uuid}` not found")
+            return await ctx.reply(f"Log `{uuid}` not found")
         if len(log) > 1984:
             await ctx.reply(files=[discord.File(f"{LOG_DIR}/{uuid}.log")])
         else:
