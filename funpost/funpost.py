@@ -1,6 +1,7 @@
 import asyncio
 import json
 import random
+from os.path import dirname
 
 import discord
 from discord.ext import commands
@@ -15,6 +16,7 @@ from core.models import PermissionLevel
 # ?fetchYuri
 # ?yuri
 
+DIR = dirname(__file__)
 GAY_STICKERS = [
     "https://static.wikia.nocookie.net/houkai-star-rail/images/d/db/Arlan_Sticker_01.png/revision/latest?cb=20230505074117",
     "https://static.wikia.nocookie.net/houkai-star-rail/images/4/47/Asta_Sticker_01.png/revision/latest?cb=20230505074119",
@@ -62,7 +64,7 @@ async def fetch_yuri_messages(bot: commands.Bot, channel_id: int, ship: str) -> 
 
         messages = list(set(messages))  # Make sure messages is unique
 
-        file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
+        file_name = f'{DIR}/links_{ship}.json'
 
         # Get the current links
         with open(file_name, 'r') as f:
@@ -126,7 +128,7 @@ class Misc(commands.Cog):
 
         num = random.randint(0, 9)
 
-        with open('plugins/Meliodas245/mm-plugins/funpost-master/8ball.json') as f:
+        with open(f'{DIR}/8ball.json') as f:
             ans = json.load(f)
 
         if num < 3:
@@ -168,7 +170,7 @@ class Misc(commands.Cog):
 
         async with ctx.typing():
             # Fetch the links
-            file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
+            file_name = f'{DIR}/links_{ship}.json'
             with open(file_name, 'r') as f:
                 url = json.load(f)
 
@@ -188,7 +190,7 @@ class Misc(commands.Cog):
         elif ship == "all":
             ship = random.choice(list(SHIP_CHANNELS.keys()))
 
-        file_name = f'plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json'
+        file_name = f'{DIR}/links_{ship}.json'
         try:
             with open(file_name, 'r') as f:
                 links = json.load(f)
@@ -208,8 +210,9 @@ class Misc(commands.Cog):
     @commands.command()
     async def archive(self, ctx: commands.Context):
         """Archives the json files"""
+        # TODO: Replace createcmd path with relative
         files = [discord.File('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json')] + [
-            discord.File(f"plugins/Meliodas245/mm-plugins/funpost-master/links_{i}.json") for i in SHIP_CHANNELS.keys()
+            discord.File(f"{DIR}/links_{i}.json") for i in SHIP_CHANNELS.keys()
         ]
         await ctx.reply(files=files)
 
@@ -226,7 +229,7 @@ class Misc(commands.Cog):
                 file_name = ""
                 for ship, id_ in SHIP_CHANNELS.items():
                     if message.channel.id == id_:
-                        file_name = f"plugins/Meliodas245/mm-plugins/funpost-master/links_{ship}.json"
+                        file_name = f"{DIR}/links_{ship}.json"
                         break
 
                 # fetch the content of the message

@@ -12,6 +12,7 @@ from core import checks
 from core.models import PermissionLevel
 
 LOG_TO_FILE = True
+LOG_DIR = os.path.dirname(__file__) + "/logs"
 USERNAME_REGEX = compile(r"File \"/home/.*?/")
 DEVELOPER_ROLE = 1087928500893265991
 
@@ -21,8 +22,8 @@ class ErrorHandler(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        if not os.path.exists("plugins/Meliodas245/mm-plugins/errorhandler-master/logs"):
-            os.makedirs("plugins/Meliodas245/mm-plugins/errorhandler-master/logs")
+        if not os.path.exists(LOG_DIR):
+            os.makedirs(LOG_DIR)
 
     @commands.command()
     @commands.check_any(commands.has_role(DEVELOPER_ROLE), checks.has_permissions(PermissionLevel.SUPPORTER))
@@ -35,12 +36,12 @@ class ErrorHandler(commands.Cog):
     async def viewlog(self, ctx: commands.Context, uuid: str):
         """View a log file"""
         try:
-            with open(f"plugins/Meliodas245/mm-plugins/errorhandler-master/logs/{uuid}.log") as f:
+            with open(f"{LOG_DIR}/{uuid}.log") as f:
                 log = f.read()
         except (FileNotFoundError, OSError):
             await ctx.reply(f"Log `{uuid}` not found")
         if len(log) > 1994:
-            await ctx.reply(files=[discord.File(f"plugins/Meliodas245/mm-plugins/errorhandler-master/logs/{uuid}.log")])
+            await ctx.reply(files=[discord.File(f"{LOG_DIR}/{uuid}.log")])
         else:
             await ctx.reply(f"```{log}```")
 
@@ -52,7 +53,7 @@ class ErrorHandler(commands.Cog):
         if ".." in uuid:
             return await ctx.reply("No. Just no.")
         try:
-            os.remove(f"plugins/Meliodas245/mm-plugins/errorhandler-master/logs/{uuid}.log")
+            os.remove(f"{LOG_DIR}/{uuid}.log")
             return await ctx.reply(f"Log `{uuid}` deleted")
         except (FileNotFoundError, OSError):
             return await ctx.reply(f"Log `{uuid}` not found")
@@ -75,8 +76,8 @@ class ErrorHandler(commands.Cog):
             return await ctx.reply("Timed out, logs have NOT been wiped")
 
         count = 0
-        for file in os.listdir("plugins/Meliodas245/mm-plugins/errorhandler-master/logs"):
-            os.remove(f"plugins/Meliodas245/mm-plugins/errorhandler-master/logs/{file}")
+        for file in os.listdir(LOG_DIR):
+            os.remove(f"{LOG_DIR}/{file}")
             count += 1
 
         await ctx.reply(f"Successfully wiped {count} logs.")
@@ -121,7 +122,7 @@ class ErrorHandler(commands.Cog):
                 traceback = "".join(format_exception(type(err), err, err.__traceback__))
                 # Hide the hoster's username (assuming Linux system) for privacy reasons
                 traceback = USERNAME_REGEX.sub("File \"/home/*****/", traceback)
-                with open(f"plugins/Meliodas245/mm-plugins/errorhandler-master/logs/{uuid}.log", "w") as f:
+                with open(f"{LOG_DIR}/{uuid}.log", "w") as f:
                     log_content = f"ID: {uuid}\n" \
                                   f"User: {ctx.author} ({ctx.author.id})\n" \
                                   f"Command: {ctx.command}\n" \

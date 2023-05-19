@@ -1,4 +1,5 @@
 import json
+from os.path import dirname
 
 import Paginator
 import discord
@@ -16,7 +17,7 @@ from core.models import PermissionLevel
 # ?creload
 
 
-COMMANDS_FILE = "plugins/Meliodas245/mm-plugins/createcmd-master/commands.json"
+COMMANDS_FILE = dirname(__file__) + "/commands.json"
 
 
 class Custom(commands.Cog):
