@@ -127,8 +127,8 @@ class Custom(commands.Cog):
         await ctx.send(embed=discord.Embed(description="Commands successfully reloaded", colour=discord.Colour.green()))
 
     # Executing custom commands
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    @commands.Cog.listener("on_message")
+    async def create_cmd_on_message(self, message: discord.Message):
         # Get the custom command
         cmd = message.content.split(' ')[0]
 

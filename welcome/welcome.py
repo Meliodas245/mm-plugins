@@ -9,8 +9,8 @@ class Welcome(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member):
+    @commands.Cog.listener("on_member_join")
+    async def welcome_on_member_join(self, member: discord.Member):
         guild = member.guild
         channel = self.bot.get_channel(CHANNEL_ID)
         if channel is not None:

@@ -82,8 +82,8 @@ class ErrorHandler(commands.Cog):
 
         await ctx.reply(f"Successfully wiped {count} logs.")
 
-    @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, err: Exception):
+    @commands.Cog.listener("on_command_error")
+    async def error_handler_on_command_error(self, ctx: commands.Context, err: Exception):
         """
         Listens to and handles bot errors.
         This only listeners, not replaces. Core Modmail may have their own handlers.

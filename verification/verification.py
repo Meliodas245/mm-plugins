@@ -10,12 +10,12 @@ ROLE_ID = 896300858277494784
 MUTED_ID = 902856057662083103
 
 
-class Reaction(commands.Cog):
+class Verification(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+    @commands.Cog.listener("on_raw_reaction_add")
+    async def verification_on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         message_id = payload.message_id
         msg = await self.bot.get_channel(CHANNEL_ID).fetch_message(MESSAGE_ID)
         if message_id != msg.id:
@@ -51,4 +51,4 @@ class Reaction(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(Reaction(bot))
+    await bot.add_cog(Verification(bot))
