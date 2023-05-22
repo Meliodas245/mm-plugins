@@ -8,7 +8,7 @@ class CustomMsg(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener("on_message")
-    async def on_message(self, message: discord.Message):
+    async def custom_msg_on_message(self, message: discord.Message):
         # Check if message contains the **Word**
         if 'masochist' in message.content.lower():
             await message.channel.send('seele mains promotes holy and pure actions!')
