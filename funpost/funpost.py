@@ -1,7 +1,7 @@
 import asyncio
 import json
 import random
-from os.path import dirname
+from os.path import dirname, exists
 
 import discord
 from discord.ext import commands
@@ -67,8 +67,11 @@ async def fetch_yuri_messages(bot: commands.Bot, channel_id: int, ship: str) -> 
         file_name = f'{DIR}/links_{ship}.json'
 
         # Get the current links
-        with open(file_name, 'r') as f:
-            url = json.load(f)
+        if exists(file_name):
+            with open(file_name, 'r') as f:
+                url = json.load(f)
+        else:
+            url = {}
 
         extractor = URLExtract()
         for link in messages:
@@ -171,8 +174,11 @@ class Misc(commands.Cog):
         async with ctx.typing():
             # Fetch the links
             file_name = f'{DIR}/links_{ship}.json'
-            with open(file_name, 'r') as f:
-                url = json.load(f)
+            if exists(file_name):
+                with open(file_name, 'r') as f:
+                    url = json.load(f)
+            else:
+                url = {}
 
             if len(url) <= 1:
                 message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
@@ -208,13 +214,9 @@ class Misc(commands.Cog):
     # Yuri + Commands Archive
     @checks.has_permissions(PermissionLevel.MODERATOR)
     @commands.command()
-    async def archive(self, ctx: commands.Context):
-        """Archives the json files"""
-        # TODO: Replace createcmd path with relative
-        files = [discord.File('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json')] + [
-            discord.File(f"{DIR}/links_{i}.json") for i in SHIP_CHANNELS.keys()
-        ]
-        await ctx.reply(files=files)
+    async def yuriarchive(self, ctx: commands.Context):
+        """Archives the yuri json files"""
+        await ctx.reply(files=[discord.File(f"{DIR}/links_{i}.json") for i in SHIP_CHANNELS.keys()])
 
     # Listener to autofetch yuri from thread
     # I don't want to fix this again -jej

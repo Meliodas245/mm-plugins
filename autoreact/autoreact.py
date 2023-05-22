@@ -118,6 +118,12 @@ class AutoReact(commands.Cog):
 
         await self.send_list(ctx, matches)
 
+    @commands.command(aliases=["ararchive"])
+    @checks.has_permissions(PermissionLevel.MODERATOR)
+    async def autoreactarchive(self, ctx: commands.Context):
+        """Archives the autoreact config file"""
+        await ctx.reply(file=discord.File(CONFIG_FILE))
+
     @commands.Cog.listener("on_message")
     async def auto_react_on_message(self, message: discord.Message):
         if not message.author.guild or message.author.bot:

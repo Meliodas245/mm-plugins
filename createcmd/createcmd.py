@@ -1,5 +1,5 @@
 import json
-from os.path import dirname
+from os.path import dirname, exists
 
 import Paginator
 import discord
@@ -25,8 +25,8 @@ class Custom(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        with open(COMMANDS_FILE) as f:
-            self.custom_commands = json.load(f)
+        self.custom_commands = {}
+        self.load_config()
 
     # Creating custom commands
     @checks.has_permissions(PermissionLevel.SUPPORTER)
@@ -122,9 +122,14 @@ class Custom(commands.Cog):
         Reloads the custom commands from file.
         This should only ever be used if a modification was done directly to the file (rather than through the bot)
         """
-        with open(COMMANDS_FILE, "r") as f:
-            self.custom_commands = json.load(f)
+        self.load_config()
         await ctx.send(embed=discord.Embed(description="Commands successfully reloaded", colour=discord.Colour.green()))
+
+    @checks.has_permissions(PermissionLevel.MODERATOR)
+    @commands.command()
+    async def carchive(self, ctx: commands.Context):
+        """Archives the custom commands"""
+        await ctx.reply(file=discord.File(COMMANDS_FILE))
 
     # Executing custom commands
     @commands.Cog.listener("on_message")
@@ -134,6 +139,14 @@ class Custom(commands.Cog):
 
         if cmd in self.custom_commands.keys():
             await message.channel.send(self.custom_commands[cmd])
+
+    def load_config(self):
+        if not exists(COMMANDS_FILE):
+            with open(COMMANDS_FILE, 'w') as out:
+                json.dump({}, out, indent=4)
+        else:
+            with open(COMMANDS_FILE) as f:
+                self.custom_commands = json.load(f)
 
 
 async def setup(bot):
