@@ -20,16 +20,8 @@ class AutoReact(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.compiled_regexes = {}
-        if not os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-                json.dump({}, f)
-            self.config: dict = {}
-        else:
-            with open(CONFIG_FILE, encoding="utf-8") as f:
-                self.config: dict = json.load(f)
-            for uuid, data in self.config.items():
-                if data["type"] == "regex":
-                    self.compiled_regexes[uuid] = compile(data["trigger"])
+        self.config = {}
+        self.load_config()
 
     @commands.command(aliases=["aradd"])
     @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
@@ -98,8 +90,7 @@ class AutoReact(commands.Cog):
     @checks.has_permissions(PermissionLevel.ADMINISTRATOR)
     async def autoreactrefresh(self, ctx: commands.Context):
         """Refreshes the autoreact list from file"""
-        with open(CONFIG_FILE, encoding="utf-8") as f:
-            self.config = json.load(f)
+        self.load_config()
         await ctx.reply("Refreshed autoreact list from file.")
 
     @commands.command(aliases=["arlist"])
@@ -159,6 +150,17 @@ class AutoReact(commands.Cog):
             PreviousButton=discord.ui.Button(emoji="⬅️", style=discord.ButtonStyle.secondary),
             NextButton=discord.ui.Button(emoji="➡️", style=discord.ButtonStyle.secondary)
         ).start(ctx, embeds)
+
+    def load_config(self):
+        if not os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+                json.dump({}, f)
+        else:
+            with open(CONFIG_FILE, encoding="utf-8") as f:
+                self.config: dict = json.load(f)
+            for uuid, data in self.config.items():
+                if data["type"] == "regex":
+                    self.compiled_regexes[uuid] = compile(data["trigger"])
 
 
 async def setup(bot):
