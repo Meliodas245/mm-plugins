@@ -1,7 +1,7 @@
 import asyncio
 import json
 import random
-from os.path import dirname
+from os.path import dirname, exists
 
 import discord
 from discord.ext import commands
@@ -67,8 +67,11 @@ async def fetch_yuri_messages(bot: commands.Bot, channel_id: int, ship: str) -> 
         file_name = f'{DIR}/links_{ship}.json'
 
         # Get the current links
-        with open(file_name, 'r') as f:
-            url = json.load(f)
+        if exists(file_name):
+            with open(file_name, 'r') as f:
+                url = json.load(f)
+        else:
+            url = {}
 
         extractor = URLExtract()
         for link in messages:
@@ -171,8 +174,11 @@ class Misc(commands.Cog):
         async with ctx.typing():
             # Fetch the links
             file_name = f'{DIR}/links_{ship}.json'
-            with open(file_name, 'r') as f:
-                url = json.load(f)
+            if exists(file_name):
+                with open(file_name, 'r') as f:
+                    url = json.load(f)
+            else:
+                url = {}
 
             if len(url) <= 1:
                 message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
