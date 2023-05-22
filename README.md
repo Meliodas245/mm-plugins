@@ -15,6 +15,13 @@ Plugin and Commands list:
     - clist
 - customsg
 - errorhandler
+- autoreact
+  - autoreactadd
+  - autoreactaddregex
+  - autoreactremove
+  - autoreactrefresh
+  - autoreactlist
+  - autoreactsearch
 
 # Plugin Installation
 ```
