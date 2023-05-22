@@ -126,6 +126,12 @@ class Custom(commands.Cog):
             self.custom_commands = json.load(f)
         await ctx.send(embed=discord.Embed(description="Commands successfully reloaded", colour=discord.Colour.green()))
 
+    @checks.has_permissions(PermissionLevel.MODERATOR)
+    @commands.command()
+    async def carchive(self, ctx: commands.Context):
+        """Archives the custom commands"""
+        await ctx.reply(file=discord.File(COMMANDS_FILE))
+
     # Executing custom commands
     @commands.Cog.listener("on_message")
     async def create_cmd_on_message(self, message: discord.Message):

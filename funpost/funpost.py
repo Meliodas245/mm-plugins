@@ -208,13 +208,9 @@ class Misc(commands.Cog):
     # Yuri + Commands Archive
     @checks.has_permissions(PermissionLevel.MODERATOR)
     @commands.command()
-    async def archive(self, ctx: commands.Context):
-        """Archives the json files"""
-        # TODO: Replace createcmd path with relative
-        files = [discord.File('plugins/Meliodas245/mm-plugins/createcmd-master/commands.json')] + [
-            discord.File(f"{DIR}/links_{i}.json") for i in SHIP_CHANNELS.keys()
-        ]
-        await ctx.reply(files=files)
+    async def yuriarchive(self, ctx: commands.Context):
+        """Archives the yuri json files"""
+        await ctx.reply(files=[discord.File(f"{DIR}/links_{i}.json") for i in SHIP_CHANNELS.keys()])
 
     # Listener to autofetch yuri from thread
     # I don't want to fix this again -jej
