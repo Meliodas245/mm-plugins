@@ -36,7 +36,7 @@ class ErrorHandler(commands.Cog):
     async def viewlog(self, ctx: commands.Context, uuid: str):
         """View a log file"""
         try:
-            with open(f"{LOG_DIR}/{uuid}.log") as f:
+            with open(f"{LOG_DIR}/{uuid}.log", encoding="utf-8") as f:
                 log = f.read()
         except (FileNotFoundError, OSError):
             return await ctx.reply(f"Log `{uuid}` not found")
@@ -122,7 +122,7 @@ class ErrorHandler(commands.Cog):
                 traceback = "".join(format_exception(type(err), err, err.__traceback__))
                 # Hide the hoster's username (assuming Linux system) for privacy reasons
                 traceback = USERNAME_REGEX.sub("File \"/home/*****/", traceback)
-                with open(f"{LOG_DIR}/{uuid}.log", "w") as f:
+                with open(f"{LOG_DIR}/{uuid}.log", "w", encoding="utf-8") as f:
                     log_content = "= Info =\n" \
                                   f"ID:: {uuid}\n" \
                                   f"User:: {ctx.author} ({ctx.author.id})\n" \

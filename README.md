@@ -28,3 +28,6 @@ Plugin and Commands list:
 ```
 ?plugin remove Meliodas245/mm-plugins/<plugin name>
 ```
+
+# Notes
+- Make sure lister func names are unique (even across files), somehow they've caused problems...
