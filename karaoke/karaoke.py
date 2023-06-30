@@ -52,7 +52,7 @@ def event_only(func: callable):
     async def wrapper(self, interaction: discord.Interaction, button: discord.ui.Button):
         member = interaction.user if isinstance(interaction.user, discord.Member) else interaction.guild.get_member(
             interaction.user.id)
-        has_perms = member.get_role(EVENT_STAFF) or self.bot.is_owner(member) or member.id == self.bot.user.id or (
+        has_perms = member.get_role(EVENT_STAFF) or await self.bot.is_owner(member) or member.id == self.bot.user.id or (
                 PERMISSION_LEVEL is not PermissionLevel.OWNER and
                 interaction.channel.permissions_for(member).administrator and
                 interaction.guild == self.bot.modmail_guild
@@ -167,7 +167,7 @@ class Karaoke(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=['karaokeq', 'kq'])
-    @role_or_perm(role=EVENT_STAFF, perm=PermissionLevel.SUPPORTER)
+    @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
     async def karaokequeue(self, ctx: commands.Context, timeout: int = 172800):
         """Starts a karaoke queue in the current channel. Timeout is in seconds. Default is 48 hours."""
         message = await ctx.send("Generating queue...")
