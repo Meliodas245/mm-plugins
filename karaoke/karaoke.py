@@ -1,130 +1,142 @@
 import discord
 from discord.ext import commands
 
+from core import checks
+from core.models import PermissionLevel
+from typing import Union
 
-QUEUE_CHANNEL = 1106024902001180673
-EVENT_STAFF = 1086023819073962086
+EVENT_STAFF = 1124436859678884000  # Event Staff Role
+PERMISSION_LEVEL = PermissionLevel.SUPPORTER  # Alternate Permission Level
 
-class StupidButtons(discord.ui.View):
 
-    def __init__(self, queue: list):
-        self.queue = queue
-        super().__init__()
-    
-    # JOIN
-    @discord.ui.button(label = 'Join', style = discord.ButtonStyle.success, emoji = "<:lamesticker:1116535025098297426>")
-    async def join(self, interaction: discord.Interaction, button: discord.ui.Button):
-        
-        # Adds to the queue.
+def event_only(func: callable):
+    """Decorator for button functions to check for event staff, equivalent, or higher permissions."""
 
-        if interaction.user.name not in self.queue:
-            self.queue.append(interaction.user.name)
-            q = '\n'.join(self.queue)
+    async def wrapper(self, interaction: discord.Interaction, button: discord.ui.Button):
+        member = interaction.user if isinstance(interaction.user, discord.Member) else interaction.guild.get_member(
+            interaction.user.id)
+        has_perms = member.get_role(EVENT_STAFF) or self.bot.is_owner(member) or member.id == self.bot.user.id or (
+                PERMISSION_LEVEL is not PermissionLevel.OWNER and
+                interaction.channel.permissions_for(member).administrator and
+                interaction.guild == self.bot.modmail_guild
+        )
+        if not has_perms:
+            checkables = {*member.roles, member}
+            level_permissions = self.bot.config["level_permissions"]
 
-            embed = discord.Embed (
-                title=':microphone: Karaoke',
-                colour=discord.Colour.blue()
-            )
-            embed.add_field(name = "Queue List", value=f"{q}")
-            
-            await interaction.response.edit_message(embed=embed)
+            for level in PermissionLevel:
+                if level >= PERMISSION_LEVEL and level.name in level_permissions:
+                    # -1 is for @everyone
+                    if -1 in level_permissions[level.name] or any(
+                            str(check.id) in level_permissions[level.name] for check in checkables
+                    ):
+                        has_perms = True
+                        break
+
+        if has_perms:
+            return await func(self, interaction, button)
         else:
-            await interaction.response.send_message(content="You've already joined the queue!", ephemeral=True)
+            return await interaction.response.send_message(content="You do not have permissions to use this.",
+                                                           ephemeral=True)
+
+    return wrapper
+
+
+class KaraokeQueueView(discord.ui.View):
+    def __init__(self, bot: commands.Bot, timeout: int, message: discord.Message):
+        super().__init__(timeout=timeout)
+        self.bot = bot
+        self.message = message
+        self.current: Union[discord.Member, None] = None
+        self.q_priority = set()
+        self.q_normal = set()
+        self.has_queued = set()
+
+    async def generate_queue(self):
+        embed = discord.Embed(
+            title=':microphone: Karaoke',
+            description=f"Current Singer 🎙️: {self.current.mention}" if self.current else "No one is currently singing",
+            colour=discord.Colour.blue()
+        )
+
+        embed.add_field(name="Priority Queue", value="\n".join([f"<@{i}>" for i in self.q_priority]))
+        embed.add_field(name="Normal Queue", value="\n".join([f"<@{i}>" for i in self.q_normal]))
+
+        return embed
+
+    async def on_timeout(self):
+        self.stop()
+        await self.message.edit(view=None)
+
+    # JOIN
+    @discord.ui.button(label='Join', style=discord.ButtonStyle.blurple, emoji="👋")
+    async def join(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Allows a member to join the queue."""
+        if interaction.user.id in self.q_priority or interaction.user.id in self.q_normal:
+            return await interaction.response.send_message(content="You're already in the queue!", ephemeral=True)
+        elif interaction.user.id in self.has_queued:
+            self.q_normal.add(interaction.user.id)
+        else:
+            self.q_priority.add(interaction.user.id)
+            self.has_queued.add(interaction.user.id)
+
+        await interaction.response.send_message(content="You've been added to the queue!", ephemeral=True)
+        await self.message.edit(embed=await self.generate_queue())
+
+    # LEAVE
+    @discord.ui.button(label='Leave', style=discord.ButtonStyle.danger, emoji="🚪")
+    async def leave(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Allows a member to leave the queue."""
+        if interaction.user.id in self.q_priority:
+            self.q_priority.remove(interaction.user.id)
+        elif interaction.user.id in self.q_normal:
+            self.q_normal.remove(interaction.user.id)
+        else:
+            return await interaction.response.send_message(content="You're not in the queue!", ephemeral=True)
+
+        await interaction.response.send_message(content="You've been removed from the queue!", ephemeral=True)
+        await interaction.response.edit_message(embed=await self.generate_queue())
 
     # NEXT - STAFF ONLY
-    @discord.ui.button(label = 'Next', style = discord.ButtonStyle.primary, emoji="<:seelejoy:1085986027115663481>")
+    @discord.ui.button(label='Next', style=discord.ButtonStyle.success, emoji="⏭️")
+    @event_only
     async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
-        guild = interaction.guild
-        member = guild.get_member(interaction.user.id)
-        
-        # Removes the first person from the queue as soon as it's their turn. 
-        if member.get_role(EVENT_STAFF):
-            if len(self.queue) >= 1:
-                n = self.queue.pop(0)
-                q = '\n'.join(self.queue)
-
-                embed = discord.Embed (
-                    title=':microphone: Karaoke',
-                    colour=discord.Colour.blue()
-                )
-                embed.add_field(name = "Queue List", value=f"{q}")
-
-                await interaction.response.edit_message(embed=embed)
-                await interaction.channel.send(content=f"`{n}` is next!")
-            
-            else:
-                await interaction.response.send_message(content=f"Nobody is next :yello:", ephemeral=True)
+        """Moves to the next person in the queue."""
+        if len(self.q_priority) > 0:
+            new = self.q_priority.pop()
+        elif len(self.q_normal) > 0:
+            new = self.q_normal.pop()
         else:
-            await interaction.response.send_message(content=f"Naurrrrr you cant lol", ephemeral=True)
-    
-    # LEAVE
-    @discord.ui.button(label = 'Leave', style = discord.ButtonStyle.secondary, emoji="<:bruh:1089823209660092486>")
-    async def leave(self, interaction: discord.Interaction, button: discord.ui.Button):
-        
-        # Yeets from the queue.
+            return await interaction.response.send_message(content="There's no one in the queue!", ephemeral=True)
 
-        if interaction.user.name in self.queue:
-            self.queue.pop(self.queue.index(interaction.user.name))
-            q = '\n'.join(self.queue)
-            
-            embed = discord.Embed (
-                title=':microphone: Karaoke',
-                colour=discord.Colour.blue()
-            )
-            embed.add_field(name = "Queue List", value=f"{q}")
+        self.current = interaction.guild.get_member(new)
+        await interaction.channel.send(embed=discord.Embed(description=f"{self.current.mention} is now up!", colour=discord.Colour.random()))
+        await interaction.response.edit_message(embed=await self.generate_queue())
 
-            await interaction.response.edit_message(embed=embed)
-        else:
-            await interaction.response.send_message(content=f"You aren't even in the queue what yo doinnn", ephemeral=True)
-    
-    # RESET - STAFF ONLY
-    @discord.ui.button(label = 'Reset', style = discord.ButtonStyle.danger, emoji= "<:seeleomg:1085605320065302630>")
+    @discord.ui.button(label='Reset', style=discord.ButtonStyle.grey, emoji="🗑️")
+    @event_only
     async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
-        
-        guild = interaction.guild
-        member = guild.get_member(interaction.user.id)
+        """Reset button, clears the queue."""
+        self.stop()
+        await self.message.edit(embed=discord.Embed(description="No longer queueing, see you next time!", colour=discord.Colour.red()),
+                                view=None)
+        await interaction.response.defer()
 
-        if member.get_role(EVENT_STAFF):
-        # Clears the queue list and Stops the interaction.
-            self.queue.clear()
-            
-            embed = discord.Embed(description=f'Adios.', colour=discord.Colour.red())
-            
-            await interaction.response.edit_message(embed=embed, view=None)
-            # Stops the interaction, forgor how to disable le buttons -jej
-            self.stop()
-        
-        else:
-            await interaction.response.send_message(content=f"Naurrrrr you cant lol", ephemeral=True)
-
-queue = []
 
 class Karaoke(commands.Cog):
-
-    """Karaoke Queue command"""
+    """Karaoke Queueing System"""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def queue_channel(ctx: commands.Context):
-        return ctx.channel.id == QUEUE_CHANNEL
-    
     @commands.command(aliases=['karaokeq', 'kq'])
-    @commands.check(queue_channel)
-    async def karaokequeue(self, ctx: commands.Context):
-        global queue
+    @commands.check_any(commands.has_role(EVENT_STAFF), checks.has_permissions(PermissionLevel.SUPPORTER))
+    async def karaokequeue(self, ctx: commands.Context, timeout: int = 172800):
+        """Starts a karaoke queue in the current channel. Timeout is in seconds. Default is 48 hours."""
+        message = await ctx.send("Generating queue...")
+        view = KaraokeQueueView(self.bot, timeout, message)
+        await message.edit(content="", view=view, embed=await view.generate_queue())
 
-        view = StupidButtons(queue)
-
-        q = '\n'.join(queue)
-        
-        embed = discord.Embed(
-            title=':microphone: Karaoke',
-            colour=discord.Colour.blue()
-        )
-
-        embed.add_field(name = "Queue List", value=f"{q}")
-        await ctx.reply(embed=embed, view=view)
 
 async def setup(bot):
     await bot.add_cog(Karaoke(bot))
