@@ -132,7 +132,7 @@ class KaraokeQueueView(discord.ui.View):
             return await interaction.response.send_message(content="You're not in the queue!", ephemeral=True)
 
         await interaction.response.send_message(content="You've been removed from the queue!", ephemeral=True)
-        await interaction.response.edit_message(embed=await self.generate_queue())
+        await self.message.edit(embed=await self.generate_queue())
 
     # NEXT - STAFF ONLY
     @discord.ui.button(label='Next', style=discord.ButtonStyle.success, emoji="⏭️")
