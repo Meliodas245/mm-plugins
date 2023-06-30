@@ -5,7 +5,7 @@ from discord.ext import commands
 QUEUE_CHANNEL = 1106024902001180673
 EVENT_STAFF = 1086023819073962086
 
-class StupidButtons(discord.ui.View(timeout=None)):
+class StupidButtons(discord.ui.View):
 
     def __init__(self, queue: list):
         self.queue = queue
