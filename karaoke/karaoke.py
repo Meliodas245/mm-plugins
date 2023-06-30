@@ -3,6 +3,7 @@ from discord.ext import commands
 
 
 QUEUE_CHANNEL = 1120456979459080343
+EVENT_STAFF = 1086023819073962086
 
 class StupidButtons(discord.ui.View):
 
@@ -33,9 +34,11 @@ class StupidButtons(discord.ui.View):
     # NEXT - STAFF ONLY
     @discord.ui.button(label = 'Next', style = discord.ButtonStyle.primary, emoji="<:seelejoy:1085986027115663481>")
     async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
+        guild = interaction.guild
+        member = guild.get_member(interaction.user.id)
         
         # Removes the first person from the queue as soon as it's their turn. 
-        if interaction.permissions.stage_moderator:
+        if member.get_role(EVENT_STAFF):
             if len(self.queue) >= 1:
                 n = self.queue.pop(0)
                 q = '\n'.join(self.queue)
@@ -78,8 +81,11 @@ class StupidButtons(discord.ui.View):
     @discord.ui.button(label = 'Reset', style = discord.ButtonStyle.danger, emoji= "<:seeleomg:1085605320065302630>")
     async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
         
+        guild = interaction.guild
+        member = guild.get_member(interaction.user.id)
+
+        if member.get_role(EVENT_STAFF):
         # Clears the queue list and Stops the interaction.
-        if interaction.permissions.stage_moderator:
             self.queue.clear()
             
             embed = discord.Embed(description=f'Adios.', colour=discord.Colour.red())
