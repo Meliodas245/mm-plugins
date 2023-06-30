@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 
-QUEUE_CHANNEL = 1120456979459080343
+QUEUE_CHANNEL = 1106024902001180673
 EVENT_STAFF = 1086023819073962086
 
 class StupidButtons(discord.ui.View):
