@@ -17,6 +17,44 @@ USERNAME_REGEX = compile(r"File \"/home/.*?/")
 DEVELOPER_ROLE = 1087928500893265991
 
 
+def role_or_perm(role: int, perm: PermissionLevel):
+    """
+    Decorator to check for either a role OR a PermissionLevel.
+    Because apparently commands.check_any causes the default PermissionLevel check to break.
+
+    As MM doesn't support local modules, copy this around as needed (I hate this too)
+    """
+    async def predicate(ctx):
+        if await ctx.bot.is_owner(ctx.author) or ctx.author.id == ctx.bot.user.id:
+            # Bot owner(s) (and creator) has absolute power over the bot
+            return True
+
+        if ctx.author.get_role(role):
+            return True
+
+        if (
+                perm is not PermissionLevel.OWNER
+                and ctx.channel.permissions_for(ctx.author).administrator
+                and ctx.guild == ctx.bot.modmail_guild
+        ):
+            # Administrators have permission to all non-owner commands in the Modmail Guild
+            return True
+
+        checkables = {*ctx.author.roles, ctx.author}
+        level_permissions = ctx.bot.config["level_permissions"]
+
+        for level in PermissionLevel:
+            if level >= perm and level.name in level_permissions:
+                # -1 is for @everyone
+                if -1 in level_permissions[level.name] or any(
+                        str(check.id) in level_permissions[level.name] for check in checkables
+                ):
+                    return True
+        return False
+
+    return commands.check(predicate)
+
+
 class ErrorHandler(commands.Cog):
     """The 'uh oh' plugin, for when everything goes wrong."""
 
@@ -26,13 +64,13 @@ class ErrorHandler(commands.Cog):
             os.makedirs(LOG_DIR)
 
     @commands.command()
-    @commands.check_any(commands.has_role(DEVELOPER_ROLE), checks.has_permissions(PermissionLevel.SUPPORTER))
+    @role_or_perm(role=DEVELOPER_ROLE, perm=PermissionLevel.SUPPORTER)
     async def raiseerror(self, ctx: commands.Context):
         """Raises an error for testing purposes"""
         raise Exception("This is a test error")
 
     @commands.command(aliases=["vlog"])
-    @commands.check_any(commands.has_role(DEVELOPER_ROLE), checks.has_permissions(PermissionLevel.SUPPORTER))
+    @role_or_perm(role=DEVELOPER_ROLE, perm=PermissionLevel.SUPPORTER)
     async def viewlog(self, ctx: commands.Context, uuid: str):
         """View a log file"""
         try:
@@ -46,7 +84,7 @@ class ErrorHandler(commands.Cog):
             await ctx.reply(f"```asciidoc\n{log}```")
 
     @commands.command(aliases=["dlog", "dellog", "delog"])
-    @commands.check_any(commands.has_role(DEVELOPER_ROLE), checks.has_permissions(PermissionLevel.SUPPORTER))
+    @role_or_perm(role=DEVELOPER_ROLE, perm=PermissionLevel.SUPPORTER)
     async def deletelog(self, ctx: commands.Context, uuid: str):
         """Deletes a log file"""
         # This is run by trusted users, so not doing too much checking

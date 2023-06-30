@@ -1,12 +1,49 @@
 import discord
 from discord.ext import commands
 
-from core import checks
 from core.models import PermissionLevel
 from typing import Union
 
 EVENT_STAFF = 1124436859678884000  # Event Staff Role
 PERMISSION_LEVEL = PermissionLevel.SUPPORTER  # Alternate Permission Level
+
+
+def role_or_perm(role: int, perm: PermissionLevel):
+    """
+    Decorator to check for either a role OR a PermissionLevel.
+    Because apparently commands.check_any causes the default PermissionLevel check to break.
+
+    As MM doesn't support local modules, copy this around as needed (I hate this too)
+    """
+    async def predicate(ctx):
+        if await ctx.bot.is_owner(ctx.author) or ctx.author.id == ctx.bot.user.id:
+            # Bot owner(s) (and creator) has absolute power over the bot
+            return True
+
+        if ctx.author.get_role(role):
+            return True
+
+        if (
+                perm is not PermissionLevel.OWNER
+                and ctx.channel.permissions_for(ctx.author).administrator
+                and ctx.guild == ctx.bot.modmail_guild
+        ):
+            # Administrators have permission to all non-owner commands in the Modmail Guild
+            return True
+
+        checkables = {*ctx.author.roles, ctx.author}
+        level_permissions = ctx.bot.config["level_permissions"]
+
+        for level in PermissionLevel:
+            if level >= perm and level.name in level_permissions:
+                # -1 is for @everyone
+                if -1 in level_permissions[level.name] or any(
+                        str(check.id) in level_permissions[level.name] for check in checkables
+                ):
+                    return True
+        return False
+
+    return commands.check(predicate)
 
 
 def event_only(func: callable):
@@ -130,7 +167,7 @@ class Karaoke(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=['karaokeq', 'kq'])
-    @commands.check_any(commands.has_role(EVENT_STAFF), checks.has_permissions(PermissionLevel.SUPPORTER))
+    @role_or_perm(role=EVENT_STAFF, perm=PermissionLevel.SUPPORTER)
     async def karaokequeue(self, ctx: commands.Context, timeout: int = 172800):
         """Starts a karaoke queue in the current channel. Timeout is in seconds. Default is 48 hours."""
         message = await ctx.send("Generating queue...")
