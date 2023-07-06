@@ -168,7 +168,7 @@ class Karaoke(commands.Cog):
 
     @commands.command(aliases=['karaokeq', 'kq'])
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
-    async def karaokequeue(self, ctx: commands.Context, timeout: int = 172800):
+    async def karaokequeue(self, ctx: commands.Context, timeout: int = 86400):
         """Starts a karaoke queue in the current channel. Timeout is in seconds. Default is 48 hours."""
         message = await ctx.send("Generating queue...")
         view = KaraokeQueueView(self.bot, timeout, message)
