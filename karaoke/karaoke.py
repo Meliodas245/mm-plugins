@@ -15,6 +15,7 @@ def role_or_perm(role: int, perm: PermissionLevel):
 
     As MM doesn't support local modules, copy this around as needed (I hate this too)
     """
+
     async def predicate(ctx):
         if await ctx.bot.is_owner(ctx.author) or ctx.author.id == ctx.bot.user.id:
             # Bot owner(s) (and creator) has absolute power over the bot
@@ -52,11 +53,12 @@ def event_only(func: callable):
     async def wrapper(self, interaction: discord.Interaction, button: discord.ui.Button):
         member = interaction.user if isinstance(interaction.user, discord.Member) else interaction.guild.get_member(
             interaction.user.id)
-        has_perms = member.get_role(EVENT_STAFF) or await self.bot.is_owner(member) or member.id == self.bot.user.id or (
-                PERMISSION_LEVEL is not PermissionLevel.OWNER and
-                interaction.channel.permissions_for(member).administrator and
-                interaction.guild == self.bot.modmail_guild
-        )
+        has_perms = member.get_role(EVENT_STAFF) or await self.bot.is_owner(
+            member) or member.id == self.bot.user.id or (
+                            PERMISSION_LEVEL is not PermissionLevel.OWNER and
+                            interaction.channel.permissions_for(member).administrator and
+                            interaction.guild == self.bot.modmail_guild
+                    )
         if not has_perms:
             checkables = {*member.roles, member}
             level_permissions = self.bot.config["level_permissions"]
@@ -147,7 +149,8 @@ class KaraokeQueueView(discord.ui.View):
             return await interaction.response.send_message(content="There's no one in the queue!", ephemeral=True)
 
         self.current = interaction.guild.get_member(new)
-        await interaction.channel.send(embed=discord.Embed(description=f"{self.current.mention} is now up!", colour=discord.Colour.random()))
+        await interaction.channel.send(
+            embed=discord.Embed(description=f"{self.current.mention} is now up!", colour=discord.Colour.random()))
         await interaction.response.edit_message(embed=await self.generate_queue())
 
     @discord.ui.button(label='Reset', style=discord.ButtonStyle.grey, emoji="<:seeleomg:1085605320065302630>")
@@ -172,6 +175,35 @@ class Karaoke(commands.Cog):
         message = await ctx.send("Generating queue...")
         view = KaraokeQueueView(self.bot, timeout, message)
         await message.edit(content="", view=view, embed=await view.generate_queue())
+
+    @commands.command(aliases=["kevict"])
+    @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
+    async def karaokeevict(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
+        """Evicts a member from a queue. Either reply to the message, or pass the message ID. Passing takes priority."""
+        if queue_message is None:
+            if ctx.message.interaction is not None:
+                queue_message = await ctx.channel.fetch_message(ctx.message.interaction.message.id)
+            else:
+                return await ctx.reply("Please either reply to the message containing the queue, or pass in the "
+                                       "message link or ID.")
+
+        if queue_message is None or queue_message.author.id != self.bot.user.id or queue_message.view is None \
+                or not isinstance(queue_message.view, KaraokeQueueView):
+            return await ctx.reply(
+                "Invalid message, please ensure you are providing the message containing the queue in which you want "
+                "the user evicted from.")
+
+        view = queue_message.view
+        if member.id in view.q_priority:
+            view.q_priority.remove(member.id)
+        elif member.id in view.q_normal:
+            view.q_normal.remove(member.id)
+        else:
+            return await ctx.send("That user is not in the queue.")
+
+        # TODO: Remove user as current singer and progress to the next user if they are the current singer.
+        await view.message.edit(embed=await view.generate_queue())
+        await ctx.reply(f"Evicted `{member.display_name}` from the queue.")
 
 
 async def setup(bot):
