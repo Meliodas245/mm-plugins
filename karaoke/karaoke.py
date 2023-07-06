@@ -149,8 +149,9 @@ class KaraokeQueueView(discord.ui.View):
             return await interaction.response.send_message(content="There's no one in the queue!", ephemeral=True)
 
         self.current = interaction.guild.get_member(new)
-        await interaction.channel.send(
-            embed=discord.Embed(description=f"{self.current.mention} is now up!", colour=discord.Colour.random()))
+        embed = discord.Embed(description=f"{self.current.mention} is now up!", colour=discord.Colour.random())
+        embed.set_footer(text=f"[Jump to Queue]({self.message.jump_url})")
+        await interaction.channel.send(embed=embed)
         await interaction.response.edit_message(embed=await self.generate_queue())
 
     @discord.ui.button(label='Reset', style=discord.ButtonStyle.grey, emoji="<:seeleomg:1085605320065302630>")
