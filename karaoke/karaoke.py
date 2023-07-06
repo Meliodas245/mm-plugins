@@ -155,8 +155,7 @@ class KaraokeQueueView(discord.ui.View):
     async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Reset button, clears the queue."""
         self.stop()
-        await self.message.edit(embed=discord.Embed(description="No longer queueing, see you next time!", colour=discord.Colour.red()),
-                                view=None)
+        await self.message.edit(view=None)
         await interaction.response.defer()
 
 
