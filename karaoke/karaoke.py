@@ -106,7 +106,7 @@ class KaraokeQueueView(discord.ui.View):
         await self.message.edit(view=None)
 
     # JOIN
-    @discord.ui.button(label='Join', style=discord.ButtonStyle.blurple, emoji="👋")
+    @discord.ui.button(label='Join', style=discord.ButtonStyle.blurple, emoji="<:lamesticker:1116535025098297426>")
     async def join(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Allows a member to join the queue."""
         if interaction.user.id in self.q_priority or interaction.user.id in self.q_normal:
@@ -121,7 +121,7 @@ class KaraokeQueueView(discord.ui.View):
         await self.message.edit(embed=await self.generate_queue())
 
     # LEAVE
-    @discord.ui.button(label='Leave', style=discord.ButtonStyle.danger, emoji="🚪")
+    @discord.ui.button(label='Leave', style=discord.ButtonStyle.danger, emoji="<:bruh:1089823209660092486>")
     async def leave(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Allows a member to leave the queue."""
         if interaction.user.id in self.q_priority:
@@ -135,7 +135,7 @@ class KaraokeQueueView(discord.ui.View):
         await self.message.edit(embed=await self.generate_queue())
 
     # NEXT - STAFF ONLY
-    @discord.ui.button(label='Next', style=discord.ButtonStyle.success, emoji="⏭️")
+    @discord.ui.button(label='Next', style=discord.ButtonStyle.success, emoji="<:seelejoy:1085986027115663481>")
     @event_only
     async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Moves to the next person in the queue."""
@@ -150,7 +150,7 @@ class KaraokeQueueView(discord.ui.View):
         await interaction.channel.send(embed=discord.Embed(description=f"{self.current.mention} is now up!", colour=discord.Colour.random()))
         await interaction.response.edit_message(embed=await self.generate_queue())
 
-    @discord.ui.button(label='Reset', style=discord.ButtonStyle.grey, emoji="🗑️")
+    @discord.ui.button(label='Reset', style=discord.ButtonStyle.grey, emoji="<:seeleomg:1085605320065302630>")
     @event_only
     async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Reset button, clears the queue."""
