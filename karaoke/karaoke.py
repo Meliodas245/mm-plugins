@@ -94,12 +94,13 @@ class KaraokeQueueView(discord.ui.View):
     async def generate_queue(self):
         embed = discord.Embed(
             title=':microphone: Karaoke',
-            description=f"Current Singer 🎙️: {self.current.mention}" if self.current else "No one is currently singing",
             colour=discord.Colour.blue()
         )
 
-        embed.add_field(name="Priority Queue", value="\n".join([f"<@{i}>" for i in self.q_priority]))
-        embed.add_field(name="Normal Queue", value="\n".join([f"<@{i}>" for i in self.q_normal]))
+        embed.add_field(name="Priority Queue", value="\n".join(
+            [f"{'🎙️ ' if i == self.current else ''}<@{i}>" for i in self.q_priority]))
+        embed.add_field(name="Normal Queue", value="\n".join(
+            [f"{'🎙️ ' if i == self.current else ''}<@{i}>" for i in self.q_normal]))
 
         return embed
 
