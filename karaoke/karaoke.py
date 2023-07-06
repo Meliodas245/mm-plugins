@@ -4,7 +4,7 @@ from discord.ext import commands
 from core.models import PermissionLevel
 from typing import Union
 
-EVENT_STAFF = 1124436859678884000  # Event Staff Role
+EVENT_STAFF = 1086023819073962086  # Event Staff Role
 PERMISSION_LEVEL = PermissionLevel.SUPPORTER  # Alternate Permission Level
 
 
