@@ -106,14 +106,8 @@ class KaraokeQueueView(discord.ui.View):
         # User ID will be added to this set if they have already had priority
         self.had_priority = set()
 
-    def _row_func(self, id_: int, went: bool) -> str:
-        """Returns a string for a row in the queue."""
-        if self.is_current(id_):
-            return f"🎙️ **<@{id_}>**"
-        elif went:
-            return f'~~<@{id_}>~~'
-        else:
-            return f"<@{id_}>"
+        # Generates row entries for the queue embed
+        self._row_func = lambda id_, went: f"~~<@{id_}>~~" if went else f"<@{id_}>"
 
     def is_current(self, member_id: int) -> bool:
         return self.current is not None and member_id == self.current.id
@@ -126,10 +120,14 @@ class KaraokeQueueView(discord.ui.View):
 
         embed.add_field(name="Priority Queue", value="\n".join(
             [self._row_func(i, True) for i in self.q_priority_history] +
+            ["" if self.current is None or self.current.id in self.had_priority
+             else f"🎙️ **{self.current.display_name}**"] +
             [self._row_func(i, False) for i in self.q_priority]
         ))
         embed.add_field(name="Normal Queue", value="\n".join(
             [self._row_func(i, True) for i in self.q_normal_history] +
+            ["" if self.current is None or self.current.id not in self.had_priority
+             else f"🎙️ **{self.current.display_name}**"] +
             [self._row_func(i, False) for i in self.q_normal]
         ))
 
@@ -137,20 +135,23 @@ class KaraokeQueueView(discord.ui.View):
 
     async def _next(self, send_message: bool = True):
         """Go to the next singer in the queue, if none, removes current singer. Returns whether this was successful."""
+        if self.current is not None:
+            if self.current.id in self.had_priority:
+                if self.current.id in self.q_normal_history:
+                    self.q_normal_history.remove(self.current.id)
+                self.q_normal_history.add(self.current.id)
+            else:
+                self.q_priority_history.add(self.current.id)
+
         if len(self.q_priority) > 0:
-            new = self.q_priority.pop()
-            self.q_priority_history.add(new)
+            self.current = self.q_priority.pop()
         elif len(self.q_normal) > 0:
-            new = self.q_normal.pop()
-            if new in self.q_normal_history:
-                self.q_normal_history.remove(new)
-            self.q_normal_history.add(new)
+            self.current = self.q_normal.pop()
         else:
             self.current = None
             return False
 
-        self.current = self.message.guild.get_member(new)
-
+        self.current = self.message.guild.get_member(self.current)
         if send_message:
             await self.message.channel.send(embed=discord.Embed(
                 description=f"{self.current.mention} is now up!\n\n[Jump to Queue]({self.message.jump_url})",
@@ -268,14 +269,7 @@ class Karaoke(commands.Cog):
             # noinspection PyProtectedMember
             await view._next()
             changed = True
-        if member.id in view.q_priority_history:
-            view.q_priority_history.remove(member.id)
-            changed = True
-        if member.id in view.q_normal_history:
-            view.q_normal_history.remove(member.id)
-            changed = True
-
-        if member.id in view.q_priority:
+        elif member.id in view.q_priority:
             view.q_priority.remove(member.id)
             changed = True
         elif member.id in view.q_normal:
@@ -306,14 +300,7 @@ class Karaoke(commands.Cog):
                 # noinspection PyProtectedMember
                 await queue._next()
                 changed = True
-            if member.id in queue.q_priority_history:
-                queue.q_priority_history.remove(member.id)
-                changed = True
-            if member.id in queue.q_normal_history:
-                queue.q_normal_history.remove(member.id)
-                changed = True
-
-            if member.id in queue.q_priority:
+            elif member.id in queue.q_priority:
                 queue.q_priority.remove(member.id)
                 changed = True
             elif member.id in queue.q_normal:
