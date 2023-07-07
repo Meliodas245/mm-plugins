@@ -338,7 +338,7 @@ class Karaoke(commands.Cog):
 
     @commands.command()
     @checks.has_permissions(PermissionLevel.MODERATOR)
-    async def karaokebanlistrefresh(self):
+    async def karaokebanlistrefresh(self, ctx: commands.Context):
         """Refreshes the ban list from the file, only use if you know exactly what you're doing."""
         # Remove all entries from the current ban list, then re-add from file. This is because we are passing in
         # references to all the karaoke views, replacing the list will not update the references.
@@ -346,6 +346,8 @@ class Karaoke(commands.Cog):
         with open(BAN_LIST_FILE, "r") as f:
             for i in json.load(f):
                 self.ban_list.append(i)
+
+        await ctx.reply("Ban list refreshed.")
 
 
 async def setup(bot):
