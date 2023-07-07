@@ -1,11 +1,16 @@
+import json
+import os
+
 import discord
 from discord.ext import commands
 
+from core import checks
 from core.models import PermissionLevel
 from typing import Union
 
 EVENT_STAFF = 1086023819073962086  # Event Staff Role
 PERMISSION_LEVEL = PermissionLevel.SUPPORTER  # Alternate Permission Level
+BAN_LIST_FILE = os.path.dirname(__file__) + "/banlist.json"
 
 
 def role_or_perm(role: int, perm: PermissionLevel):
@@ -82,11 +87,13 @@ def event_only(func: callable):
 
 
 class KaraokeQueueView(discord.ui.View):
-    def __init__(self, bot: commands.Bot, timeout: int, message: discord.Message):
+    def __init__(self, bot: commands.Bot, timeout: int, message: discord.Message, queue_list: list, ban_list: list):
         super().__init__(timeout=timeout)
         self.bot = bot  # Bot instance
         self.message = message  # Message the view is attached to
         self.current: Union[discord.Member, None] = None  # Current singer
+        self.queue_list = queue_list  # List of queues, so that we can remove ourselves from it
+        self.ban_list = ban_list  # List of banned users
 
         # Sets of user IDs that have already gone and should be crossed out
         self.q_priority_history: set[int] = set()
@@ -126,6 +133,7 @@ class KaraokeQueueView(discord.ui.View):
         return embed
 
     async def on_timeout(self):
+        self.queue_list.remove(self)
         self.stop()
         await self.message.edit(view=None)
 
@@ -133,7 +141,13 @@ class KaraokeQueueView(discord.ui.View):
     @discord.ui.button(label='Join', style=discord.ButtonStyle.blurple, emoji="<:lamesticker:1116535025098297426>")
     async def join(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Allows a member to join the queue."""
-        if interaction.user.id in self.q_priority or interaction.user.id in self.q_normal:
+        if interaction.user.id in self.ban_list:
+            return await interaction.response.send_message(
+                content="You have been banned from joining karaoke queues! Contact an event team member if you believe "
+                        "this is a mistake.",
+                ephemeral=True
+            )
+        elif interaction.user.id in self.q_priority or interaction.user.id in self.q_normal:
             return await interaction.response.send_message(content="You're already in the queue!", ephemeral=True)
         elif interaction.user.id in self.had_priority:
             self.q_normal.add(interaction.user.id)
@@ -185,6 +199,7 @@ class KaraokeQueueView(discord.ui.View):
     @event_only
     async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Reset button, clears the queue."""
+        self.queue_list.remove(self)
         self.stop()
         await self.message.edit(view=None)
         await interaction.response.defer()
@@ -195,13 +210,23 @@ class Karaoke(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.current_queues = []
+
+        if not os.path.isfile(BAN_LIST_FILE):
+            with open(BAN_LIST_FILE, "w") as f:
+                json.dump([], f)
+            self.ban_list = []
+        else:
+            with open(BAN_LIST_FILE, "r") as f:
+                self.ban_list = json.load(f)
 
     @commands.command(aliases=['karaokeq', 'kq'])
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
     async def karaokequeue(self, ctx: commands.Context, timeout: int = 86400):
-        """Starts a karaoke queue in the current channel. Timeout is in seconds. Default is 48 hours."""
+        """Starts a karaoke queue in the current channel. Timeout is in seconds. Default is 24 hours."""
         message = await ctx.send("Generating queue...")
-        view = KaraokeQueueView(self.bot, timeout, message)
+        view = KaraokeQueueView(self.bot, timeout, message, self.current_queues, self.ban_list)
+        self.current_queues.append(view)
         await message.edit(content="", view=view, embed=await view.generate_queue())
 
     @commands.command(aliases=["kevict"])
@@ -227,11 +252,58 @@ class Karaoke(commands.Cog):
         elif member.id in view.q_normal:
             view.q_normal.remove(member.id)
         else:
-            return await ctx.send("That user is not in the queue.")
+            return await ctx.reply("That user is not in the queue.")
 
         # TODO: Remove user as current singer and progress to the next user if they are the current singer.
         await view.message.edit(embed=await view.generate_queue())
         await ctx.reply(f"Evicted `{member.display_name}` from the queue.")
+
+    @commands.command(aliases=["kban"])
+    @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
+    async def karaokeban(self, ctx: commands.Context, member: discord.Member):
+        """Ban a user from joining queues."""
+        if member.id in self.ban_list:
+            return await ctx.reply("That user is already banned.")
+
+        self.ban_list.append(member.id)
+        with open(BAN_LIST_FILE, "w") as f:
+            json.dump(self.ban_list, f)
+
+        for queue in self.current_queues:
+            # TODO: Remove the user from history if they are the current singer.
+            if member.id in queue.q_priority:
+                queue.q_priority.remove(member.id)
+            elif member.id in queue.q_normal:
+                queue.q_normal.remove(member.id)
+            else:
+                continue
+            await queue.message.edit(embed=await queue.generate_queue())
+
+        await ctx.reply(f"Banned `{member.display_name}` from joining queues, and evicted from all current queues.")
+
+    @commands.command(aliases=["kunban"])
+    @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
+    async def karaokeunban(self, ctx: commands.Context, member: discord.Member):
+        """Unban a user from joining queues."""
+        if member.id not in self.ban_list:
+            return await ctx.reply("That user is not banned.")
+
+        self.ban_list.remove(member.id)
+        with open(BAN_LIST_FILE, "w") as f:
+            json.dump(self.ban_list, f)
+
+        await ctx.reply(f"Unbanned `{member.display_name}` from joining queues.")
+
+    @commands.command()
+    @checks.has_permissions(PermissionLevel.MODERATOR)
+    async def karaokebanlistrefresh(self):
+        """Refreshes the ban list from the file, only use if you know exactly what you're doing."""
+        # Remove all entries from the current ban list, then re-add from file. This is because we are passing in
+        # references to all the karaoke views, replacing the list will not update the references.
+        self.ban_list.clear()
+        with open(BAN_LIST_FILE, "r") as f:
+            for i in json.load(f):
+                self.ban_list.append(i)
 
 
 async def setup(bot):
