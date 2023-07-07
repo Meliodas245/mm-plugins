@@ -123,14 +123,14 @@ class KaraokeQueueView(discord.ui.View):
 
         embed.add_field(name="Priority Queue", value="\n".join(
             [self._row_func(i, True) for i in self.q_priority_history] +
-            ["" if self.current is None or self.current.id in self.had_priority
-             else f"🎙️ **{self.current.display_name}**"] +
+            ([] if self.current is None or self.current.id in self.had_priority
+             else [f"🎙️ **{self.current.mention}**"]) +
             [self._row_func(i, False) for i in self.q_priority]
         ))
         embed.add_field(name="Normal Queue", value="\n".join(
             [self._row_func(i, True) for i in self.q_normal_history] +
-            ["" if self.current is None or self.current.id not in self.had_priority
-             else f"🎙️ **{self.current.display_name}**"] +
+            ([] if self.current is None or self.current.id not in self.had_priority
+             else [f"🎙️ **{self.current.mention}**"]) +
             [self._row_func(i, False) for i in self.q_normal]
         ))
 
@@ -145,6 +145,7 @@ class KaraokeQueueView(discord.ui.View):
                 self.q_normal_history.add(self.current.id)
             else:
                 self.q_priority_history.add(self.current.id)
+                self.had_priority.add(self.current.id)
 
         if len(self.q_priority) > 0:
             self.current = self.q_priority.pop()
@@ -189,7 +190,6 @@ class KaraokeQueueView(discord.ui.View):
             self.q_normal.add(interaction.user.id)
         else:
             self.q_priority.add(interaction.user.id)
-            self.had_priority.add(interaction.user.id)
 
         await interaction.response.send_message(content="You've been added to the queue!", ephemeral=True)
         await self.message.edit(embed=await self.generate_queue())
@@ -218,7 +218,8 @@ class KaraokeQueueView(discord.ui.View):
         """Moves to the next person in the queue."""
         if not await self._next():
             await interaction.response.send_message(content="There's no one next in the queue!", ephemeral=True)
-        await interaction.response.edit_message(embed=await self.generate_queue())
+        await self.message.edit(embed=await self.generate_queue())
+        await interaction.response.defer()
 
     @discord.ui.button(label='Reset', style=discord.ButtonStyle.grey, emoji="<:seeleomg:1085605320065302630>")
     @event_only
