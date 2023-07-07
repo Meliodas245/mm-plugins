@@ -106,14 +106,17 @@ class KaraokeQueueView(discord.ui.View):
         # User ID will be added to this set if they have already had priority
         self.had_priority = set()
 
-    def _row_func(self, user_id: int, went: bool) -> str:
+    def _row_func(self, id_: int, went: bool) -> str:
         """Returns a string for a row in the queue."""
-        if user_id == self.current:
-            return f"🎙️ **<@{user_id}>**"
+        if self.is_current(id_):
+            return f"🎙️ **<@{id_}>**"
         elif went:
-            return f'~~<@{user_id}>~~'
+            return f'~~<@{id_}>~~'
         else:
-            return f"<@{user_id}>"
+            return f"<@{id_}>"
+
+    def is_current(self, member_id: int) -> bool:
+        return self.current is not None and member_id == self.current.id
 
     async def generate_queue(self):
         embed = discord.Embed(
@@ -131,6 +134,23 @@ class KaraokeQueueView(discord.ui.View):
         ))
 
         return embed
+
+    async def _next(self):
+        """Go to the next singer in the queue, if none, removes current singer. Returns whether this was successful."""
+        if len(self.q_priority) > 0:
+            new = self.q_priority.pop()
+            self.q_priority_history.add(new)
+        elif len(self.q_normal) > 0:
+            new = self.q_normal.pop()
+            if new in self.q_normal_history:
+                self.q_normal_history.remove(new)
+            self.q_normal_history.add(new)
+        else:
+            self.current = None
+            return False
+
+        self.current = self.message.guild.get_member(new)
+        return True
 
     async def on_timeout(self):
         self.queue_list.remove(self)
@@ -162,7 +182,9 @@ class KaraokeQueueView(discord.ui.View):
     @discord.ui.button(label='Leave', style=discord.ButtonStyle.danger, emoji="<:bruh:1089823209660092486>")
     async def leave(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Allows a member to leave the queue."""
-        # TODO: Check if current singer, if so, auto next
+        if self.is_current(interaction.user.id):
+            await self._next()
+
         if interaction.user.id in self.q_priority:
             self.q_priority.remove(interaction.user.id)
         elif interaction.user.id in self.q_normal:
@@ -178,21 +200,12 @@ class KaraokeQueueView(discord.ui.View):
     @event_only
     async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Moves to the next person in the queue."""
-        if len(self.q_priority) > 0:
-            new = self.q_priority.pop()
-            self.q_priority_history.add(new)
-        elif len(self.q_normal) > 0:
-            new = self.q_normal.pop()
-            if new in self.q_normal_history:
-                self.q_normal_history.remove(new)
-            self.q_normal_history.add(new)
+        if await self._next():
+            embed = discord.Embed(description=f"{self.current.mention} is now up!", colour=discord.Colour.random())
+            embed.set_footer(text=f"[Jump to Queue]({self.message.jump_url})")
+            await interaction.channel.send(embed=embed)
         else:
-            return await interaction.response.send_message(content="There's no one in the queue!", ephemeral=True)
-
-        self.current = interaction.guild.get_member(new)
-        embed = discord.Embed(description=f"{self.current.mention} is now up!", colour=discord.Colour.random())
-        embed.set_footer(text=f"[Jump to Queue]({self.message.jump_url})")
-        await interaction.channel.send(embed=embed)
+            await interaction.response.send_message(content="There's no one next in the queue!", ephemeral=True)
         await interaction.response.edit_message(embed=await self.generate_queue())
 
     @discord.ui.button(label='Reset', style=discord.ButtonStyle.grey, emoji="<:seeleomg:1085605320065302630>")
@@ -247,14 +260,29 @@ class Karaoke(commands.Cog):
                 "the user evicted from.")
 
         view = queue_message.view
+
+        changed = False
+        if view.is_current(member.id):
+            # noinspection PyProtectedMember
+            await view._next()
+            changed = True
+        if member.id in view.q_priority_history:
+            view.q_priority_history.remove(member.id)
+            changed = True
+        if member.id in view.q_normal_history:
+            view.q_normal_history.remove(member.id)
+            changed = True
+
         if member.id in view.q_priority:
             view.q_priority.remove(member.id)
+            changed = True
         elif member.id in view.q_normal:
             view.q_normal.remove(member.id)
-        else:
+            changed = True
+
+        if not changed:
             return await ctx.reply("That user is not in the queue.")
 
-        # TODO: Remove user as current singer and progress to the next user if they are the current singer.
         await view.message.edit(embed=await view.generate_queue())
         await ctx.reply(f"Evicted `{member.display_name}` from the queue.")
 
@@ -270,14 +298,28 @@ class Karaoke(commands.Cog):
             json.dump(self.ban_list, f)
 
         for queue in self.current_queues:
-            # TODO: Remove the user from history if they are the current singer.
+            changed = False
+
+            if queue.is_current(member.id):
+                # noinspection PyProtectedMember
+                await queue._next()
+                changed = True
+            if member.id in queue.q_priority_history:
+                queue.q_priority_history.remove(member.id)
+                changed = True
+            if member.id in queue.q_normal_history:
+                queue.q_normal_history.remove(member.id)
+                changed = True
+
             if member.id in queue.q_priority:
                 queue.q_priority.remove(member.id)
+                changed = True
             elif member.id in queue.q_normal:
                 queue.q_normal.remove(member.id)
-            else:
-                continue
-            await queue.message.edit(embed=await queue.generate_queue())
+                changed = True
+
+            if changed:
+                await queue.message.edit(embed=await queue.generate_queue())
 
         await ctx.reply(f"Banned `{member.display_name}` from joining queues, and evicted from all current queues.")
 
