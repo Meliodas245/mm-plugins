@@ -84,12 +84,29 @@ def event_only(func: callable):
 class KaraokeQueueView(discord.ui.View):
     def __init__(self, bot: commands.Bot, timeout: int, message: discord.Message):
         super().__init__(timeout=timeout)
-        self.bot = bot
-        self.message = message
-        self.current: Union[discord.Member, None] = None
-        self.q_priority = set()
-        self.q_normal = set()
-        self.has_queued = set()
+        self.bot = bot  # Bot instance
+        self.message = message  # Message the view is attached to
+        self.current: Union[discord.Member, None] = None  # Current singer
+
+        # Sets of user IDs that have already gone and should be crossed out
+        self.q_priority_history: set[int] = set()
+        self.q_normal_history: set[int] = set()
+
+        # Sets of user IDs that are set to go next in their respective queues
+        self.q_priority: set[int] = set()
+        self.q_normal: set[int] = set()
+
+        # User ID will be added to this set if they have already had priority
+        self.had_priority = set()
+
+    def _row_func(self, user_id: int, went: bool) -> str:
+        """Returns a string for a row in the queue."""
+        if user_id == self.current:
+            return f"🎙️ **<@{user_id}>**"
+        elif went:
+            return f'~~<@{user_id}>~~'
+        else:
+            return f"<@{user_id}>"
 
     async def generate_queue(self):
         embed = discord.Embed(
@@ -98,9 +115,13 @@ class KaraokeQueueView(discord.ui.View):
         )
 
         embed.add_field(name="Priority Queue", value="\n".join(
-            [f"{'🎙️ ' if i == self.current else ''}<@{i}>" for i in self.q_priority]))
+            [self._row_func(i, True) for i in self.q_priority_history] +
+            [self._row_func(i, False) for i in self.q_priority]
+        ))
         embed.add_field(name="Normal Queue", value="\n".join(
-            [f"{'🎙️ ' if i == self.current else ''}<@{i}>" for i in self.q_normal]))
+            [self._row_func(i, True) for i in self.q_normal_history] +
+            [self._row_func(i, False) for i in self.q_normal]
+        ))
 
         return embed
 
@@ -114,11 +135,11 @@ class KaraokeQueueView(discord.ui.View):
         """Allows a member to join the queue."""
         if interaction.user.id in self.q_priority or interaction.user.id in self.q_normal:
             return await interaction.response.send_message(content="You're already in the queue!", ephemeral=True)
-        elif interaction.user.id in self.has_queued:
+        elif interaction.user.id in self.had_priority:
             self.q_normal.add(interaction.user.id)
         else:
             self.q_priority.add(interaction.user.id)
-            self.has_queued.add(interaction.user.id)
+            self.had_priority.add(interaction.user.id)
 
         await interaction.response.send_message(content="You've been added to the queue!", ephemeral=True)
         await self.message.edit(embed=await self.generate_queue())
@@ -127,6 +148,7 @@ class KaraokeQueueView(discord.ui.View):
     @discord.ui.button(label='Leave', style=discord.ButtonStyle.danger, emoji="<:bruh:1089823209660092486>")
     async def leave(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Allows a member to leave the queue."""
+        # TODO: Check if current singer, if so, auto next
         if interaction.user.id in self.q_priority:
             self.q_priority.remove(interaction.user.id)
         elif interaction.user.id in self.q_normal:
@@ -144,8 +166,12 @@ class KaraokeQueueView(discord.ui.View):
         """Moves to the next person in the queue."""
         if len(self.q_priority) > 0:
             new = self.q_priority.pop()
+            self.q_priority_history.add(new)
         elif len(self.q_normal) > 0:
             new = self.q_normal.pop()
+            if new in self.q_normal_history:
+                self.q_normal_history.remove(new)
+            self.q_normal_history.add(new)
         else:
             return await interaction.response.send_message(content="There's no one in the queue!", ephemeral=True)
 
