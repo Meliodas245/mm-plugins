@@ -135,7 +135,7 @@ class KaraokeQueueView(discord.ui.View):
 
         return embed
 
-    async def _next(self):
+    async def _next(self, send_message: bool = True):
         """Go to the next singer in the queue, if none, removes current singer. Returns whether this was successful."""
         if len(self.q_priority) > 0:
             new = self.q_priority.pop()
@@ -150,6 +150,12 @@ class KaraokeQueueView(discord.ui.View):
             return False
 
         self.current = self.message.guild.get_member(new)
+
+        if send_message:
+            await self.message.channel.send(embed=discord.Embed(
+                description=f"{self.current.mention} is now up!\n\n[Jump to Queue]({self.message.jump_url})",
+                colour=discord.Colour.random()
+            ))
         return True
 
     async def on_timeout(self):
@@ -200,11 +206,7 @@ class KaraokeQueueView(discord.ui.View):
     @event_only
     async def next(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Moves to the next person in the queue."""
-        if await self._next():
-            embed = discord.Embed(description=f"{self.current.mention} is now up!", colour=discord.Colour.random())
-            embed.set_footer(text=f"[Jump to Queue]({self.message.jump_url})")
-            await interaction.channel.send(embed=embed)
-        else:
+        if not await self._next():
             await interaction.response.send_message(content="There's no one next in the queue!", ephemeral=True)
         await interaction.response.edit_message(embed=await self.generate_queue())
 
