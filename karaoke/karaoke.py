@@ -124,13 +124,13 @@ class KaraokeQueueView(discord.ui.View):
         embed.add_field(name="Priority Queue", value="\n".join(
             [self._row_func(i, True) for i in self.q_priority_history] +
             ([] if self.current is None or self.current.id in self.had_priority
-             else [f"🎙️ **{self.current.mention}**"]) +
+             else [f"**{self.current.mention}** 🎤 "]) +
             [self._row_func(i, False) for i in self.q_priority]
         ))
         embed.add_field(name="Normal Queue", value="\n".join(
             [self._row_func(i, True) for i in self.q_normal_history] +
             ([] if self.current is None or self.current.id not in self.had_priority
-             else [f"🎙️ **{self.current.mention}**"]) +
+             else [f"**{self.current.mention}** 🎤 "]) +
             [self._row_func(i, False) for i in self.q_normal]
         ))
 
@@ -291,6 +291,53 @@ class Karaoke(commands.Cog):
 
         await view.message.edit(embed=await view.generate_queue())
         await ctx.reply(f"Evicted `{member.display_name}` from the queue.")
+
+    @commands.command(aliases=["kcleanse"])
+    @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
+    async def karaokecleanse(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
+        """
+        Cleanses a member from the queue (removes from both history and next up).
+        Either reply to the message, or pass the message ID. Passing takes priority
+        """
+        if queue_message is None:
+            if ctx.message.interaction is not None:
+                queue_message = await ctx.channel.fetch_message(ctx.message.interaction.message.id)
+            else:
+                return await ctx.reply("Please either reply to the message containing the queue, or pass in the "
+                                       "message link or ID.")
+
+        if queue_message is None or queue_message.author.id != self.bot.user.id or queue_message.view is None \
+                or not isinstance(queue_message.view, KaraokeQueueView):
+            return await ctx.reply(
+                "Invalid message, please ensure you are providing the message containing the queue in which you want "
+                "the user cleansed from.")
+
+        view = queue_message.view
+
+        changed = False
+        if member.id in view.q_priority_history:
+            view.q_priority_history.remove(member.id)
+            changed = True
+        if member.id in view.q_normal_history:
+            view.q_normal_history.remove(member.id)
+            changed = True
+
+        if view.is_current(member.id):
+            # noinspection PyProtectedMember
+            await view._next()
+            changed = True
+        elif member.id in view.q_priority:
+            view.q_priority.remove(member.id)
+            changed = True
+        elif member.id in view.q_normal:
+            view.q_normal.remove(member.id)
+            changed = True
+
+        if not changed:
+            return await ctx.reply("That user is not in the queue.")
+
+        await view.message.edit(embed=await view.generate_queue())
+        await ctx.reply(f"Cleansed `{member.display_name}` from the queue.")
 
     @commands.command(aliases=["kban"])
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
