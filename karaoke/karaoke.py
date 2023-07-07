@@ -56,8 +56,11 @@ def event_only(func: callable):
     """Decorator for button functions to check for event staff, equivalent, or higher permissions."""
 
     async def wrapper(self, interaction: discord.Interaction, button: discord.ui.Button):
-        member = interaction.user if isinstance(interaction.user, discord.Member) else interaction.guild.get_member(
-            interaction.user.id)
+        try:
+            member = interaction.user if isinstance(interaction.user, discord.Member) else interaction.guild.get_member(
+                interaction.user.id)
+        except (Exception,):
+            return await interaction.channel.send("Something went wrong. Please try again.")
         has_perms = member.get_role(EVENT_STAFF) or await self.bot.is_owner(
             member) or member.id == self.bot.user.id or (
                             PERMISSION_LEVEL is not PermissionLevel.OWNER and
@@ -151,7 +154,13 @@ class KaraokeQueueView(discord.ui.View):
             self.current = None
             return False
 
-        self.current = self.message.guild.get_member(self.current)
+        try:
+            self.current = self.message.guild.get_member(self.current)
+        except (Exception,):
+            self.current = None
+            if send_message:
+                await self.message.channel.send("An error occurred while getting the next singer, please try again.")
+            return False
         if send_message:
             await self.message.channel.send(embed=discord.Embed(
                 description=f"{self.current.mention} is now up!\n\n[Jump to Queue]({self.message.jump_url})",
