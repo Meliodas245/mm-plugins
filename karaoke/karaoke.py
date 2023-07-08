@@ -349,7 +349,7 @@ class Karaoke(commands.Cog):
         with open(BAN_LIST_FILE, "w") as f:
             json.dump(self.ban_list, f)
 
-        for queue in self.current_queues:
+        for queue in self.current_queues.values():
             changed = False
 
             if queue.is_current(member.id):
