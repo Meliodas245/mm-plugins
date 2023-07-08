@@ -200,8 +200,7 @@ class KaraokeQueueView(discord.ui.View):
         """Allows a member to leave the queue."""
         if self.is_current(interaction.user.id):
             await self._next()
-
-        if interaction.user.id in self.q_priority:
+        elif interaction.user.id in self.q_priority:
             self.q_priority.remove(interaction.user.id)
         elif interaction.user.id in self.q_normal:
             self.q_normal.remove(interaction.user.id)
