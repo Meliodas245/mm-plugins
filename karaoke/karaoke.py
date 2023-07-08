@@ -83,11 +83,10 @@ def event_only(func: callable):
         if has_perms:
             return await func(self, interaction, button)
         else:
-            return await interaction.response.send_message(content="You do not have permissions to use this.",
+            return await interaction.response.send_message(content="You do not have permission to use this.",
                                                            ephemeral=True)
 
     return wrapper
-
 
 class KaraokeQueueView(discord.ui.View):
     def __init__(self, bot: commands.Bot, timeout: int, message: discord.Message, queue_list: dict, ban_list: list):
@@ -98,13 +97,13 @@ class KaraokeQueueView(discord.ui.View):
         self.queue_list = queue_list  # List of queues, so that we can remove ourselves from it
         self.ban_list = ban_list  # List of banned users
 
-        # Sets of user IDs that have already gone and should be crossed out
-        self.q_priority_history: set[int] = set()
-        self.q_normal_history: set[int] = set()
+        # List of user IDs that have already gone and should be crossed out
+        self.q_priority_history: list[int] = []
+        self.q_normal_history: list[int] = []
 
-        # Sets of user IDs that are set to go next in their respective queues
-        self.q_priority: set[int] = set()
-        self.q_normal: set[int] = set()
+        # List of user IDs that are set to go next in their respective queues
+        self.q_priority: list[int] = []
+        self.q_normal: list[int] = []
 
         # User ID will be added to this set if they have already had priority
         self.had_priority = set()
@@ -142,9 +141,9 @@ class KaraokeQueueView(discord.ui.View):
             if self.current.id in self.had_priority:
                 if self.current.id in self.q_normal_history:
                     self.q_normal_history.remove(self.current.id)
-                self.q_normal_history.add(self.current.id)
+                self.q_normal_history.append(self.current.id)
             else:
-                self.q_priority_history.add(self.current.id)
+                self.q_priority_history.append(self.current.id)
                 self.had_priority.add(self.current.id)
 
         if len(self.q_priority) > 0:
@@ -187,9 +186,9 @@ class KaraokeQueueView(discord.ui.View):
         elif interaction.user.id in self.q_priority or interaction.user.id in self.q_normal:
             return await interaction.response.send_message(content="You're already in the queue!", ephemeral=True)
         elif interaction.user.id in self.had_priority:
-            self.q_normal.add(interaction.user.id)
+            self.q_normal.append(interaction.user.id)
         else:
-            self.q_priority.add(interaction.user.id)
+            self.q_priority.append(interaction.user.id)
 
         await interaction.response.send_message(content="You've been added to the queue!", ephemeral=True)
         await self.message.edit(embed=await self.generate_queue())
