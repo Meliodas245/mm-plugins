@@ -357,7 +357,14 @@ class Karaoke(commands.Cog):
                 # noinspection PyProtectedMember
                 await queue._next()
                 changed = True
-            elif member.id in queue.q_priority:
+            if member.id in queue.q_priority_history:
+                queue.q_priority_history.remove(member.id)
+                changed = True
+            if member.id in queue.q_requeue_history:
+                queue.q_requeue_history.remove(member.id)
+                changed = True
+
+            if member.id in queue.q_priority:
                 queue.q_priority.remove(member.id)
                 changed = True
             elif member.id in queue.q_requeue:
