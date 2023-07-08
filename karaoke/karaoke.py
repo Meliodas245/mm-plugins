@@ -147,9 +147,9 @@ class KaraokeQueueView(discord.ui.View):
                 self.had_priority.add(self.current.id)
 
         if len(self.q_priority) > 0:
-            self.current = self.q_priority.pop()
+            self.current = self.q_priority.pop(0)
         elif len(self.q_normal) > 0:
-            self.current = self.q_normal.pop()
+            self.current = self.q_normal.pop(0)
         else:
             self.current = None
             return False
