@@ -183,7 +183,8 @@ class KaraokeQueueView(discord.ui.View):
                         "this is a mistake.",
                 ephemeral=True
             )
-        elif interaction.user.id in self.q_priority or interaction.user.id in self.q_normal:
+        elif interaction.user.id in self.q_priority or interaction.user.id in self.q_normal or \
+                self.is_current(interaction.user.id):
             return await interaction.response.send_message(content="You're already in the queue!", ephemeral=True)
         elif interaction.user.id in self.had_priority:
             self.q_normal.append(interaction.user.id)
