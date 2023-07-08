@@ -90,7 +90,7 @@ def event_only(func: callable):
 
 
 class KaraokeQueueView(discord.ui.View):
-    def __init__(self, bot: commands.Bot, timeout: int, message: discord.Message, queue_list: list, ban_list: list):
+    def __init__(self, bot: commands.Bot, timeout: int, message: discord.Message, queue_list: dict, ban_list: list):
         super().__init__(timeout=timeout)
         self.bot = bot  # Bot instance
         self.message = message  # Message the view is attached to
@@ -170,7 +170,7 @@ class KaraokeQueueView(discord.ui.View):
         return True
 
     async def on_timeout(self):
-        self.queue_list.remove(self)
+        del self.queue_list[self.message.id]
         self.stop()
         await self.message.edit(view=None)
 
@@ -225,7 +225,7 @@ class KaraokeQueueView(discord.ui.View):
     @event_only
     async def reset(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Reset button, clears the queue."""
-        self.queue_list.remove(self)
+        del self.queue_list[self.message.id]
         self.stop()
         await self.message.edit(view=None)
         await interaction.response.defer()
@@ -236,7 +236,7 @@ class Karaoke(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.current_queues = []
+        self.current_queues = {}
 
         if not os.path.isfile(BAN_LIST_FILE):
             with open(BAN_LIST_FILE, "w") as f:
@@ -252,7 +252,7 @@ class Karaoke(commands.Cog):
         """Starts a karaoke queue in the current channel. Timeout is in seconds. Default is 24 hours."""
         message = await ctx.send("Generating queue...")
         view = KaraokeQueueView(self.bot, timeout, message, self.current_queues, self.ban_list)
-        self.current_queues.append(view)
+        self.current_queues[message.id] = view
         await message.edit(content="", view=view, embed=await view.generate_queue())
 
     @commands.command(aliases=["kevict"])
@@ -260,19 +260,19 @@ class Karaoke(commands.Cog):
     async def karaokeevict(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
         """Evicts a member from a queue. Either reply to the message, or pass the message ID. Passing takes priority."""
         if queue_message is None:
-            if ctx.message.interaction is not None:
-                queue_message = await ctx.channel.fetch_message(ctx.message.interaction.message.id)
+            if ctx.message.reference is not None:
+                queue_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
             else:
                 return await ctx.reply("Please either reply to the message containing the queue, or pass in the "
                                        "message link or ID.")
 
-        if queue_message is None or queue_message.author.id != self.bot.user.id or queue_message.view is None \
-                or not isinstance(queue_message.view, KaraokeQueueView):
+        if queue_message is None or queue_message.author.id != self.bot.user.id or \
+                queue_message.id not in self.current_queues:
             return await ctx.reply(
                 "Invalid message, please ensure you are providing the message containing the queue in which you want "
                 "the user evicted from.")
 
-        view = queue_message.view
+        view = self.current_queues[queue_message.id]
 
         changed = False
         if view.is_current(member.id):
@@ -300,21 +300,25 @@ class Karaoke(commands.Cog):
         Either reply to the message, or pass the message ID. Passing takes priority
         """
         if queue_message is None:
-            if ctx.message.interaction is not None:
-                queue_message = await ctx.channel.fetch_message(ctx.message.interaction.message.id)
+            if ctx.message.reference is not None:
+                queue_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
             else:
                 return await ctx.reply("Please either reply to the message containing the queue, or pass in the "
                                        "message link or ID.")
 
-        if queue_message is None or queue_message.author.id != self.bot.user.id or queue_message.view is None \
-                or not isinstance(queue_message.view, KaraokeQueueView):
+        if queue_message is None or queue_message.author.id != self.bot.user.id or \
+                queue_message.id not in self.current_queues:
             return await ctx.reply(
                 "Invalid message, please ensure you are providing the message containing the queue in which you want "
                 "the user cleansed from.")
 
-        view = queue_message.view
+        view = self.current_queues[queue_message.id]
 
         changed = False
+        if view.is_current(member.id):
+            # noinspection PyProtectedMember
+            await view._next()
+            changed = True
         if member.id in view.q_priority_history:
             view.q_priority_history.remove(member.id)
             changed = True
@@ -322,11 +326,7 @@ class Karaoke(commands.Cog):
             view.q_normal_history.remove(member.id)
             changed = True
 
-        if view.is_current(member.id):
-            # noinspection PyProtectedMember
-            await view._next()
-            changed = True
-        elif member.id in view.q_priority:
+        if member.id in view.q_priority:
             view.q_priority.remove(member.id)
             changed = True
         elif member.id in view.q_normal:
