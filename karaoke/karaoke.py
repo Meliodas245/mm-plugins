@@ -88,6 +88,7 @@ def event_only(func: callable):
 
     return wrapper
 
+
 class KaraokeQueueView(discord.ui.View):
     def __init__(self, bot: commands.Bot, timeout: int, message: discord.Message, queue_list: dict, ban_list: list):
         super().__init__(timeout=timeout)
@@ -99,11 +100,11 @@ class KaraokeQueueView(discord.ui.View):
 
         # List of user IDs that have already gone and should be crossed out
         self.q_priority_history: list[int] = []
-        self.q_normal_history: list[int] = []
+        self.q_requeue_history: list[int] = []
 
         # List of user IDs that are set to go next in their respective queues
         self.q_priority: list[int] = []
-        self.q_normal: list[int] = []
+        self.q_requeue: list[int] = []
 
         # User ID will be added to this set if they have already had priority
         self.had_priority = set()
@@ -126,11 +127,11 @@ class KaraokeQueueView(discord.ui.View):
              else [f"**{self.current.mention}** 🎤 "]) +
             [self._row_func(i, False) for i in self.q_priority]
         ))
-        embed.add_field(name="Normal Queue", value="\n".join(
-            [self._row_func(i, True) for i in self.q_normal_history] +
+        embed.add_field(name="Requeue", value="\n".join(
+            [self._row_func(i, True) for i in self.q_requeue_history] +
             ([] if self.current is None or self.current.id not in self.had_priority
              else [f"**{self.current.mention}** 🎤 "]) +
-            [self._row_func(i, False) for i in self.q_normal]
+            [self._row_func(i, False) for i in self.q_requeue]
         ))
 
         return embed
@@ -139,17 +140,17 @@ class KaraokeQueueView(discord.ui.View):
         """Go to the next singer in the queue, if none, removes current singer. Returns whether this was successful."""
         if self.current is not None:
             if self.current.id in self.had_priority:
-                if self.current.id in self.q_normal_history:
-                    self.q_normal_history.remove(self.current.id)
-                self.q_normal_history.append(self.current.id)
+                if self.current.id in self.q_requeue_history:
+                    self.q_requeue_history.remove(self.current.id)
+                self.q_requeue_history.append(self.current.id)
             else:
                 self.q_priority_history.append(self.current.id)
                 self.had_priority.add(self.current.id)
 
         if len(self.q_priority) > 0:
             self.current = self.q_priority.pop(0)
-        elif len(self.q_normal) > 0:
-            self.current = self.q_normal.pop(0)
+        elif len(self.q_requeue) > 0:
+            self.current = self.q_requeue.pop(0)
         else:
             self.current = None
             return False
@@ -183,11 +184,11 @@ class KaraokeQueueView(discord.ui.View):
                         "this is a mistake.",
                 ephemeral=True
             )
-        elif interaction.user.id in self.q_priority or interaction.user.id in self.q_normal or \
+        elif interaction.user.id in self.q_priority or interaction.user.id in self.q_requeue or \
                 self.is_current(interaction.user.id):
             return await interaction.response.send_message(content="You're already in the queue!", ephemeral=True)
         elif interaction.user.id in self.had_priority:
-            self.q_normal.append(interaction.user.id)
+            self.q_requeue.append(interaction.user.id)
         else:
             self.q_priority.append(interaction.user.id)
 
@@ -202,8 +203,8 @@ class KaraokeQueueView(discord.ui.View):
             await self._next()
         elif interaction.user.id in self.q_priority:
             self.q_priority.remove(interaction.user.id)
-        elif interaction.user.id in self.q_normal:
-            self.q_normal.remove(interaction.user.id)
+        elif interaction.user.id in self.q_requeue:
+            self.q_requeue.remove(interaction.user.id)
         else:
             return await interaction.response.send_message(content="You're not in the queue!", ephemeral=True)
 
@@ -281,8 +282,8 @@ class Karaoke(commands.Cog):
         elif member.id in view.q_priority:
             view.q_priority.remove(member.id)
             changed = True
-        elif member.id in view.q_normal:
-            view.q_normal.remove(member.id)
+        elif member.id in view.q_requeue:
+            view.q_requeue.remove(member.id)
             changed = True
 
         if not changed:
@@ -321,15 +322,15 @@ class Karaoke(commands.Cog):
         if member.id in view.q_priority_history:
             view.q_priority_history.remove(member.id)
             changed = True
-        if member.id in view.q_normal_history:
-            view.q_normal_history.remove(member.id)
+        if member.id in view.q_requeue_history:
+            view.q_requeue_history.remove(member.id)
             changed = True
 
         if member.id in view.q_priority:
             view.q_priority.remove(member.id)
             changed = True
-        elif member.id in view.q_normal:
-            view.q_normal.remove(member.id)
+        elif member.id in view.q_requeue:
+            view.q_requeue.remove(member.id)
             changed = True
 
         if not changed:
@@ -359,8 +360,8 @@ class Karaoke(commands.Cog):
             elif member.id in queue.q_priority:
                 queue.q_priority.remove(member.id)
                 changed = True
-            elif member.id in queue.q_normal:
-                queue.q_normal.remove(member.id)
+            elif member.id in queue.q_requeue:
+                queue.q_requeue.remove(member.id)
                 changed = True
 
             if changed:
