@@ -22,6 +22,8 @@ Plugin and Commands list:
   - autoreactrefresh
   - autoreactlist
   - autoreactsearch
+- karaoke
+- announcecodes
 
 # Plugin Installation
 ```
