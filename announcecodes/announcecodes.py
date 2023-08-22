@@ -31,7 +31,7 @@ class AnnounceCodes(commands.Cog):
 
         channel = self.bot.get_channel(CHANNEL_ID)
         embed = discord.Embed(
-            title="New HSR Gift Codes!",
+            title=f"New HSR Gift Code{'s' if len(codes) > 1 else ''}!",
             description="To copy a code on mobile, tap and hold the code itself.",
             colour=0x7a7dfd
         )
