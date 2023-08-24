@@ -405,3 +405,9 @@ class Karaoke(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Karaoke(bot))
+
+# TODO: ?kdelay - push 1 slot back in queue (if current, go to first in queue)
+# TODO: ?kbump (orig ?kjumpto) - bring to first in queue (before current)
+# TODO: ?evilkdelay - bump 1 slot up in queue (joke idea?)
+# TODO: Preload queue before session starts, by providing as arguments. Priority/normal queue separated by |
+# TODO: ?klog - Export a queue in the format needed to import it (see above), potentially store on "Reset" press?
