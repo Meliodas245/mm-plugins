@@ -288,7 +288,8 @@ class Karaoke(commands.Cog):
         `?kq 86400 <IDs/mentions for priority queue>|<IDs/mentions for requeue>`
 
         Note that a timeout needs to be entered when doing this, the `|` is mandatory,
-        and this bypasses queue protections (i.e. deduplication).
+        and this bypasses queue protections (i.e. deduplication), which may result in
+        unexpected behaviour from normal queue operations when used improperly.
         """
         priority, requeue = [], []
         if import_queue is not None:
@@ -347,6 +348,61 @@ class Karaoke(commands.Cog):
             f"`?kq 86400 {' '.join(map(str, view.q_priority))}|{' '.join(map(str, view.q_requeue))}`")
 
     # QUEUE MANIPULATION
+    @commands.command(aliases=["krearrange", "karaokearrange", "karrange"])
+    @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
+    async def karaokerearrange(self, ctx: commands.Context, *, import_queue):
+        """
+        Entirely rearrange a queue in-place. This does NOT affect the current singer.
+
+        Note that the `|` is mandatory, and this bypasses queue protections (e.g. deduplication), which may result in
+        unexpected behaviour from normal queue operations when used improperly.
+
+        You MUST reply to the queue message, passing is NOT supported for this command.
+        """
+        view = await self.handle_queue_retrieval(ctx, None)
+        if view is None:
+            return
+
+        if "|" not in import_queue:
+            return await ctx.send("The `|` is mandatory when providing a queue, even if one of the queues is empty. "
+                                  "If one of the queues is empty, include the | but don't put anything before or "
+                                  "after it.")
+        elif import_queue.count("|") > 1:
+            return await ctx.send("You can only provide the priority and requeue. Ensure that there is only "
+                                  "one `|` separator.")
+
+        priority_raw, requeue_raw = import_queue.split("|")
+        converter = commands.MemberConverter()  # Used to convert arbitrary representations of members
+        priority, requeue, failed = [], [], []
+        for i in priority_raw.split(" "):
+            if i.strip() == "":
+                continue
+            try:
+                priority.append((await converter.convert(ctx, i)).id)
+            except (commands.CommandError, commands.BadArgument, commands.MemberNotFound):
+                failed.append(i)
+        for i in requeue_raw.split(" "):
+            if i.strip() == "":
+                continue
+            try:
+                requeue.append((await converter.convert(ctx, i)).id)
+            except (commands.CommandError, commands.BadArgument, commands.MemberNotFound):
+                failed.append(i)
+
+        if len(failed) > 0:
+            await ctx.reply(embed=discord.Embed(
+                title="Failed to parse some members",
+                description="The following members failed to parse, they will not "
+                            "be included in the queue:\n```{}```".format("\n".join(failed)),
+                colour=discord.Colour.red()
+            ))
+
+        view.q_priority = priority
+        view.q_requeue = requeue
+
+        await view.message.edit(embed=await view.generate_queue())
+        await ctx.reply(f"Rearranged the queue.")
+
     @commands.command(aliases=["kevict"])
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
     async def karaokeevict(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
