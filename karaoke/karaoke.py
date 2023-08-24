@@ -177,7 +177,10 @@ class KaraokeQueueView(discord.ui.View):
     async def on_timeout(self):
         del self.queue_list[self.message.id]
         self.stop()
-        await self.message.edit(view=None)
+        await self.message.edit(
+            content=f"`?kq 86400 {' '.join(map(str, self.q_priority))}|{' '.join(map(str, self.q_requeue))}`",
+            view=None
+        )
 
     # JOIN
     @discord.ui.button(label='Join', style=discord.ButtonStyle.blurple, emoji="<:lamesticker:1116535025098297426>")
@@ -232,7 +235,10 @@ class KaraokeQueueView(discord.ui.View):
         """Reset button, clears the queue."""
         del self.queue_list[self.message.id]
         self.stop()
-        await self.message.edit(view=None)
+        await self.message.edit(
+            content=f"`?kq 86400 {' '.join(map(str, self.q_priority))}|{' '.join(map(str, self.q_requeue))}`",
+            view=None
+        )
         await interaction.response.defer()
 
 
