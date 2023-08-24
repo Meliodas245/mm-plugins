@@ -246,33 +246,56 @@ class Karaoke(commands.Cog):
             with open(BAN_LIST_FILE, "r") as f:
                 self.ban_list = json.load(f)
 
+    async def handle_queue_retrieval(self, ctx: commands.Context, queue_message: discord.Message = None) \
+            -> Union[None, KaraokeQueueView]:
+        """Helper method to retrieve the queue to perform an action on, and take appropriate action if it fails."""
+        if queue_message is None:
+            if ctx.message.reference is not None:
+                queue_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+            else:
+                await ctx.reply("Please either reply to the message containing the queue, or pass in the message link "
+                                "or ID.")
+                return
+
+        if queue_message is None or queue_message.author.id != self.bot.user.id or \
+                queue_message.id not in self.current_queues:
+            await ctx.reply(
+                "Invalid message, please ensure you are providing the message containing the queue in which you want "
+                "to perform an action on.")
+            return
+
+        return self.current_queues[queue_message.id]
+
+    # MAIN
     @commands.command(aliases=['karaokeq', 'kq'])
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
     async def karaokequeue(self, ctx: commands.Context, timeout: int = 86400):
         """Starts a karaoke queue in the current channel. Timeout is in seconds. Default is 24 hours."""
+        # TODO: Preload queue before session starts, by providing as arguments. Priority/normal queue separated by |
         message = await ctx.send("Generating queue...")
         view = KaraokeQueueView(self.bot, timeout, message, self.current_queues, self.ban_list)
         self.current_queues[message.id] = view
         await message.edit(content="", view=view, embed=await view.generate_queue())
 
+    @commands.command(aliases=["klog"])
+    @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
+    async def karaokelog(self, ctx: commands.Context, queue_message: discord.Message = None):
+        """
+        Export a queue in the format needed to import it.
+        """
+        # TODO: ?klog - Export a queue in the format needed to import it (see above), potentially store on "Reset" press?
+        view = await self.handle_queue_retrieval(ctx, queue_message)
+        if view is None:
+            return
+
+    # QUEUE MANIPULATION
     @commands.command(aliases=["kevict"])
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
     async def karaokeevict(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
         """Evicts a member from a queue. Either reply to the message, or pass the message ID. Passing takes priority."""
-        if queue_message is None:
-            if ctx.message.reference is not None:
-                queue_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-            else:
-                return await ctx.reply("Please either reply to the message containing the queue, or pass in the "
-                                       "message link or ID.")
-
-        if queue_message is None or queue_message.author.id != self.bot.user.id or \
-                queue_message.id not in self.current_queues:
-            return await ctx.reply(
-                "Invalid message, please ensure you are providing the message containing the queue in which you want "
-                "the user evicted from.")
-
-        view = self.current_queues[queue_message.id]
+        view = await self.handle_queue_retrieval(ctx, queue_message)
+        if view is None:
+            return
 
         changed = False
         if view.is_current(member.id):
@@ -297,22 +320,11 @@ class Karaoke(commands.Cog):
     async def karaokecleanse(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
         """
         Cleanses a member from the queue (removes from both history and next up).
-        Either reply to the message, or pass the message ID. Passing takes priority
+        Either reply to the message, or pass the message ID. Passing takes priority.
         """
-        if queue_message is None:
-            if ctx.message.reference is not None:
-                queue_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-            else:
-                return await ctx.reply("Please either reply to the message containing the queue, or pass in the "
-                                       "message link or ID.")
-
-        if queue_message is None or queue_message.author.id != self.bot.user.id or \
-                queue_message.id not in self.current_queues:
-            return await ctx.reply(
-                "Invalid message, please ensure you are providing the message containing the queue in which you want "
-                "the user cleansed from.")
-
-        view = self.current_queues[queue_message.id]
+        view = await self.handle_queue_retrieval(ctx, queue_message)
+        if view is None:
+            return
 
         changed = False
         if view.is_current(member.id):
@@ -339,6 +351,43 @@ class Karaoke(commands.Cog):
         await view.message.edit(embed=await view.generate_queue())
         await ctx.reply(f"Cleansed `{member.display_name}` from the queue.")
 
+    @commands.command(aliases=["kdelay", "karaokebump", "kbump"])
+    @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
+    async def karaokedelay(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
+        """
+        Pushes a user 1 position down in the queue.
+        Either reply to the message, or pass the message ID. Passing takes priority.
+        """
+        # TODO: ?kdelay/?kbump - push 1 slot back in queue (if current, go to first in queue)
+        view = await self.handle_queue_retrieval(ctx, queue_message)
+        if view is None:
+            return
+
+    @commands.command(aliases=["kpull", "evilkaraokedelay", "evilkdelay"])
+    @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
+    async def karaokepull(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
+        """
+        Pulls a user 1 position up in the queue.
+        Either reply to the message, or pass the message ID. Passing takes priority.
+        """
+        # TODO: ?kpull/?evilkdelay - bump 1 slot up in queue
+        view = await self.handle_queue_retrieval(ctx, queue_message)
+        if view is None:
+            return
+
+    @commands.command(aliases=["kjumpto"])
+    @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
+    async def karaokejumpto(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
+        """
+        Brings a user to the front of the queue (after current).
+        Either reply to the message, or pass the message ID. Passing takes priority.
+        """
+        # TODO: ?kjumpto - bring to first in queue (before current)
+        view = await self.handle_queue_retrieval(ctx, queue_message)
+        if view is None:
+            return
+
+    # QUEUE PROTECTION
     @commands.command(aliases=["kban"])
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
     async def karaokeban(self, ctx: commands.Context, member: discord.Member):
@@ -405,9 +454,3 @@ class Karaoke(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Karaoke(bot))
-
-# TODO: ?kdelay - push 1 slot back in queue (if current, go to first in queue)
-# TODO: ?kbump (orig ?kjumpto) - bring to first in queue (before current)
-# TODO: ?evilkdelay - bump 1 slot up in queue (joke idea?)
-# TODO: Preload queue before session starts, by providing as arguments. Priority/normal queue separated by |
-# TODO: ?klog - Export a queue in the format needed to import it (see above), potentially store on "Reset" press?
