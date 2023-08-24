@@ -475,7 +475,7 @@ class Karaoke(commands.Cog):
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
     async def karaokedelay(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
         """
-        Pushes a user 1 position down in the queue.
+        Bumps a user 1 position down in the queue.
 
         Either reply to the message, or pass the message ID. Passing takes priority.
         """
