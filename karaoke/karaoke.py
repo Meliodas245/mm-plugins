@@ -90,8 +90,13 @@ def event_only(func: callable):
 
 
 class KaraokeQueueView(discord.ui.View):
-    def __init__(self, bot: commands.Bot, timeout: int, message: discord.Message, queue_list: dict, ban_list: list):
+    def __init__(self, bot: commands.Bot, timeout: int, message: discord.Message, queue_list: dict, ban_list: list,
+                 starting_priority: list[int] = None, starting_requeue: list[int] = None):
         super().__init__(timeout=timeout)
+        if starting_priority is None:
+            starting_priority = []
+        if starting_requeue is None:
+            starting_requeue = []
         self.bot = bot  # Bot instance
         self.message = message  # Message the view is attached to
         self.current: Union[discord.Member, None] = None  # Current singer
@@ -103,8 +108,8 @@ class KaraokeQueueView(discord.ui.View):
         self.q_requeue_history: list[int] = []
 
         # List of user IDs that are set to go next in their respective queues
-        self.q_priority: list[int] = []
-        self.q_requeue: list[int] = []
+        self.q_priority: list[int] = starting_priority
+        self.q_requeue: list[int] = starting_requeue
 
         # User ID will be added to this set if they have already had priority
         self.had_priority = set()
@@ -269,11 +274,54 @@ class Karaoke(commands.Cog):
     # MAIN
     @commands.command(aliases=['karaokeq', 'kq'])
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
-    async def karaokequeue(self, ctx: commands.Context, timeout: int = 86400):
-        """Starts a karaoke queue in the current channel. Timeout is in seconds. Default is 24 hours."""
-        # TODO: Preload queue before session starts, by providing as arguments. Priority/normal queue separated by |
+    async def karaokequeue(self, ctx: commands.Context, timeout: int = 86400, *, import_queue=None):
+        """
+        Starts a karaoke queue in the current channel. Timeout is in seconds. Default is 24 hours.
+
+        You can pass in a queue to start with by following the format, single-space-delimited:
+        `?kq 86400 <IDs/mentions for priority queue>|<IDs/mentions for requeue>`
+
+        Note that a timeout needs to be entered when doing this, the `|` is mandatory,
+        and this bypasses queue protections (i.e. deduplication).
+        """
+        priority, requeue = [], []
+        if import_queue is not None:
+            if "|" not in import_queue:
+                return await ctx.send("The `|` is mandatory when providing a queue to start with, even if one of the "
+                                      "queues is empty. If one of the queues is empty, include the | but don't put "
+                                      "anything before or after it.")
+            elif import_queue.count("|") > 1:
+                return await ctx.send("You can only provide the priority and requeue. Ensure that there is only "
+                                      "one `|` separator.")
+
+            priority_raw, requeue_raw = import_queue.split("|")
+            converter = commands.MemberConverter()  # Used to convert arbitrary representations of members
+            failed = []
+            for i in priority_raw.split(" "):
+                if i.strip() == "":
+                    continue
+                try:
+                    priority.append((await converter.convert(ctx, i)).id)
+                except (commands.CommandError, commands.BadArgument, commands.MemberNotFound):
+                    failed.append(i)
+            for i in requeue_raw.split(" "):
+                if i.strip() == "":
+                    continue
+                try:
+                    requeue.append((await converter.convert(ctx, i)).id)
+                except (commands.CommandError, commands.BadArgument, commands.MemberNotFound):
+                    failed.append(i)
+
+            if len(failed) > 0:
+                await ctx.reply(embed=discord.Embed(
+                    title="Failed to parse some members",
+                    description="The following members failed to parse, they will not "
+                                "be included in the queue:\n```{}```".format("\n".join(failed)),
+                    colour=discord.Colour.red()
+                ))
+
         message = await ctx.send("Generating queue...")
-        view = KaraokeQueueView(self.bot, timeout, message, self.current_queues, self.ban_list)
+        view = KaraokeQueueView(self.bot, timeout, message, self.current_queues, self.ban_list, priority, requeue)
         self.current_queues[message.id] = view
         await message.edit(content="", view=view, embed=await view.generate_queue())
 
@@ -281,7 +329,7 @@ class Karaoke(commands.Cog):
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
     async def karaokelog(self, ctx: commands.Context, queue_message: discord.Message = None):
         """
-        Export a queue in the format needed to import it.
+        Export a queue in the format needed to import it. The current singer is NOT included in this export.
         """
         # TODO: ?klog - Export a queue in the format needed to import it (see above), potentially store on "Reset" press?
         view = await self.handle_queue_retrieval(ctx, queue_message)
@@ -317,7 +365,8 @@ class Karaoke(commands.Cog):
 
     @commands.command(aliases=["kcleanse"])
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
-    async def karaokecleanse(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
+    async def karaokecleanse(self, ctx: commands.Context, member: discord.Member,
+                             queue_message: discord.Message = None):
         """
         Cleanses a member from the queue (removes from both history and next up).
         Either reply to the message, or pass the message ID. Passing takes priority.
