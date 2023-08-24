@@ -330,6 +330,7 @@ class Karaoke(commands.Cog):
     async def karaokelog(self, ctx: commands.Context, queue_message: discord.Message = None):
         """
         Export a queue in the format needed to import it. The current singer is NOT included in this export.
+
         Either reply to the message, or pass the message ID. Passing takes priority.
         """
         view = await self.handle_queue_retrieval(ctx, queue_message)
@@ -344,6 +345,7 @@ class Karaoke(commands.Cog):
     async def karaokeevict(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
         """
         Evicts a member from a queue. Passing takes priority.
+
         Either reply to the message, or pass the message ID. Passing takes priority.
         """
         view = await self.handle_queue_retrieval(ctx, queue_message)
@@ -374,6 +376,7 @@ class Karaoke(commands.Cog):
                              queue_message: discord.Message = None):
         """
         Cleanses a member from the queue (removes from both history and next up).
+
         Either reply to the message, or pass the message ID. Passing takes priority.
         """
         view = await self.handle_queue_retrieval(ctx, queue_message)
@@ -410,18 +413,35 @@ class Karaoke(commands.Cog):
     async def karaokedelay(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
         """
         Pushes a user 1 position down in the queue.
+
         Either reply to the message, or pass the message ID. Passing takes priority.
         """
-        # TODO: ?kdelay/?kbump - push 1 slot back in queue (if current, go to first in queue)
         view = await self.handle_queue_retrieval(ctx, queue_message)
         if view is None:
             return
+
+        if member.id in view.q_priority:
+            index = view.q_priority.index(member.id)
+            if index == len(view.q_priority) - 1:
+                return await ctx.reply("That user is already at the bottom of the queue.")
+            view.q_priority.insert(index + 1, view.q_priority.pop(index))
+        elif member.id in view.q_requeue:
+            index = view.q_requeue.index(member.id)
+            if index == len(view.q_requeue) - 1:
+                return await ctx.reply("That user is already at the bottom of the queue.")
+            view.q_requeue.insert(index + 1, view.q_requeue.pop(index))
+        else:
+            return await ctx.reply("That user is not in any queue.")
+
+        await view.message.edit(embed=await view.generate_queue())
+        await ctx.reply(f"Bumped `{member.display_name}` 1 slot down.")
 
     @commands.command(aliases=["kpull", "evilkaraokedelay", "evilkdelay"])
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
     async def karaokepull(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
         """
         Pulls a user 1 position up in the queue.
+
         Either reply to the message, or pass the message ID. Passing takes priority.
         """
         # TODO: ?kpull/?evilkdelay - bump 1 slot up in queue
@@ -434,6 +454,7 @@ class Karaoke(commands.Cog):
     async def karaokejumpto(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
         """
         Brings a user to the front of the queue (after current).
+
         Either reply to the message, or pass the message ID. Passing takes priority.
         """
         # TODO: ?kjumpto - bring to first in queue (before current)
