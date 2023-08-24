@@ -325,22 +325,27 @@ class Karaoke(commands.Cog):
         self.current_queues[message.id] = view
         await message.edit(content="", view=view, embed=await view.generate_queue())
 
-    @commands.command(aliases=["klog"])
+    @commands.command(aliases=["klog", "karaokeexport", "kexport"])
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
     async def karaokelog(self, ctx: commands.Context, queue_message: discord.Message = None):
         """
         Export a queue in the format needed to import it. The current singer is NOT included in this export.
+        Either reply to the message, or pass the message ID. Passing takes priority.
         """
-        # TODO: ?klog - Export a queue in the format needed to import it (see above), potentially store on "Reset" press?
         view = await self.handle_queue_retrieval(ctx, queue_message)
         if view is None:
             return
+
+        return await ctx.reply(f"`?kq 86400 {' '.join(map(str, view.q_priority))}|{' '.join(map(str, view.q_requeue))}`")
 
     # QUEUE MANIPULATION
     @commands.command(aliases=["kevict"])
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
     async def karaokeevict(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
-        """Evicts a member from a queue. Either reply to the message, or pass the message ID. Passing takes priority."""
+        """
+        Evicts a member from a queue. Passing takes priority.
+        Either reply to the message, or pass the message ID. Passing takes priority.
+        """
         view = await self.handle_queue_retrieval(ctx, queue_message)
         if view is None:
             return
