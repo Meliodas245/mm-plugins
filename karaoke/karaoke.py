@@ -466,14 +466,28 @@ class Karaoke(commands.Cog):
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
     async def karaokejumpto(self, ctx: commands.Context, member: discord.Member, queue_message: discord.Message = None):
         """
-        Brings a user to the front of the queue (after current).
+        Brings a user to the front of their queue (after current).
 
         Either reply to the message, or pass the message ID. Passing takes priority.
         """
-        # TODO: ?kjumpto - bring to first in queue (before current)
         view = await self.handle_queue_retrieval(ctx, queue_message)
         if view is None:
             return
+
+        if member.id in view.q_priority:
+            q = view.q_priority
+        elif member.id in view.q_requeue:
+            q = view.q_requeue
+        else:
+            return await ctx.reply("That user is not in any queue.")
+
+        index = q.index(member.id)
+        if index == 0:
+            return await ctx.reply("That user is already first in the queue.")
+        q.insert(0, q.pop(index))
+
+        await view.message.edit(embed=await view.generate_queue())
+        await ctx.reply(f"Jumped `{member.display_name}` to the front of their queue.")
 
     # QUEUE PROTECTION
     @commands.command(aliases=["kban"])
