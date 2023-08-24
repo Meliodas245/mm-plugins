@@ -337,7 +337,8 @@ class Karaoke(commands.Cog):
         if view is None:
             return
 
-        return await ctx.reply(f"`?kq 86400 {' '.join(map(str, view.q_priority))}|{' '.join(map(str, view.q_requeue))}`")
+        return await ctx.reply(
+            f"`?kq 86400 {' '.join(map(str, view.q_priority))}|{' '.join(map(str, view.q_requeue))}`")
 
     # QUEUE MANIPULATION
     @commands.command(aliases=["kevict"])
