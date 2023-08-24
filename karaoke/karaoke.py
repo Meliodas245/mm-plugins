@@ -444,10 +444,24 @@ class Karaoke(commands.Cog):
 
         Either reply to the message, or pass the message ID. Passing takes priority.
         """
-        # TODO: ?kpull/?evilkdelay - bump 1 slot up in queue
         view = await self.handle_queue_retrieval(ctx, queue_message)
         if view is None:
             return
+
+        if member.id in view.q_priority:
+            q = view.q_priority
+        elif member.id in view.q_requeue:
+            q = view.q_requeue
+        else:
+            return await ctx.reply("That user is not in any queue.")
+
+        index = q.index(member.id)
+        if index == 0:
+            return await ctx.reply("That user is already first in the queue.")
+        q.insert(index - 1, q.pop(index))
+
+        await view.message.edit(embed=await view.generate_queue())
+        await ctx.reply(f"Pulled `{member.display_name}` 1 slot up.")
 
     @commands.command(aliases=["kjumpto"])
     @role_or_perm(role=EVENT_STAFF, perm=PERMISSION_LEVEL)
