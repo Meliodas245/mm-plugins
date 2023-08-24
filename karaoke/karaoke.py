@@ -421,17 +421,16 @@ class Karaoke(commands.Cog):
             return
 
         if member.id in view.q_priority:
-            index = view.q_priority.index(member.id)
-            if index == len(view.q_priority) - 1:
-                return await ctx.reply("That user is already at the bottom of the queue.")
-            view.q_priority.insert(index + 1, view.q_priority.pop(index))
+            q = view.q_priority
         elif member.id in view.q_requeue:
-            index = view.q_requeue.index(member.id)
-            if index == len(view.q_requeue) - 1:
-                return await ctx.reply("That user is already at the bottom of the queue.")
-            view.q_requeue.insert(index + 1, view.q_requeue.pop(index))
+            q = view.q_requeue
         else:
             return await ctx.reply("That user is not in any queue.")
+
+        index = q.index(member.id)
+        if index == len(q) - 1:
+            return await ctx.reply("That user is already at the bottom of the queue.")
+        q.insert(index + 1, q.pop(index))
 
         await view.message.edit(embed=await view.generate_queue())
         await ctx.reply(f"Bumped `{member.display_name}` 1 slot down.")
