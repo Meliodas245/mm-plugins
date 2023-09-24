@@ -15,7 +15,8 @@ class AnnounceCodes(commands.Cog):
         self.bot = bot
 
     @commands.command(aliases=["ac", "announcecode"])
-    @checks.has_permissions(PermissionLevel.MODERATOR)
+    @commands.cooldown(rate=1, per=60)
+    @checks.has_permissions(PermissionLevel.SUPPORTER)
     async def announcecodes(self, ctx: commands.Context, *codes):
         """Announce HSR gift code(s) quickly.
 
