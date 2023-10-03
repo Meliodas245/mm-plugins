@@ -11,10 +11,7 @@ from core import checks
 from core.models import PermissionLevel
 
 # List of commands here:
-# ?gaydar
 # ?magic8ball
-# ?fetchYuri
-# ?yuri
 
 DIR = dirname(__file__)
 GAY_STICKERS = [
