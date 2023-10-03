@@ -15,19 +15,13 @@ from core.models import PermissionLevel
 
 DIR = dirname(__file__)
 GAY_STICKERS = [
-    "https://static.wikia.nocookie.net/houkai-star-rail/images/d/db/Arlan_Sticker_01.png/revision/latest?cb=20230505074117",
-    "https://static.wikia.nocookie.net/houkai-star-rail/images/4/47/Asta_Sticker_01.png/revision/latest?cb=20230505074119",
-    "https://static.wikia.nocookie.net/houkai-star-rail/images/6/6a/Bailu_Sticker_02.png/revision/latest?cb=20230420184826",
-    "https://static.wikia.nocookie.net/houkai-star-rail/images/d/d4/Caelus_Sticker_02.png/revision/latest?cb=20230420195451",
-    "https://static.wikia.nocookie.net/houkai-star-rail/images/5/5c/Stelle_Sticker_02.png/revision/latest?cb=20230420195524",
-    "https://static.wikia.nocookie.net/houkai-star-rail/images/2/22/Dan_Heng_Sticker_01.png/revision/latest?cb=20230505074120",
-    "https://static.wikia.nocookie.net/houkai-star-rail/images/2/26/Herta_Sticker_01.png/revision/latest?cb=20230505074121",
-    "https://static.wikia.nocookie.net/houkai-star-rail/images/4/45/Himeko_Sticker_01.png/revision/latest?cb=20230505074123",
-    "https://static.wikia.nocookie.net/houkai-star-rail/images/c/c7/Jing_Yuan_Sticker_02.png/revision/latest?cb=20230420194038",
-    "https://static.wikia.nocookie.net/houkai-star-rail/images/6/6e/Kafka_Sticker_01.png/revision/latest?cb=20230505074126",
-    "https://static.wikia.nocookie.net/houkai-star-rail/images/2/28/Silver_Wolf_Sticker_01.png/revision/latest?cb=20230505074135",
-    "https://static.wikia.nocookie.net/houkai-star-rail/images/1/12/March_7th_Sticker_05.png/revision/latest?cb=20220425065144",
-    "https://static.wikia.nocookie.net/houkai-star-rail/images/5/5f/Serval_Sticker_01.png/revision/latest?cb=20230505074134"
+    "https://media.discordapp.net/attachments/1106785083379171372/1157133462331985961/20230928_174023.png?ex=65178003&is=65162e83&hm=dc1d01d630f54b13f7bea3dc29be717a279dd46929041dd34745880963379621&",
+    "https://media.discordapp.net/attachments/1106785083379171372/1156858924838965268/Untitled570_20230928144333.png?ex=65168055&is=65152ed5&hm=257aeb2eb1d4596009f0ef092adf2e8573242cfae51116e0685545bfa322b87d&=&width=703&height=655",
+    "https://media.discordapp.net/attachments/1106793246748848199/1156482829098692649/20230926_233455.png?ex=65152210&is=6513d090&hm=0a5126e8622729f3baa2b31b69dcfef12c9e4d0808e9c09ab9febb46692489bb&=&width=655&height=655",
+    "https://media.discordapp.net/attachments/1106793246748848199/1156482828868014100/20230926_230548.png?ex=65152210&is=6513d090&hm=3d90ac3e06e7c44fbb399bf9d06a7634d88940a51d533e086c44cb21c6775077&=&width=334&height=333",
+    "https://media.discordapp.net/attachments/1106785083379171372/1156341810042515486/20230926_013519.png?ex=65149ebb&is=65134d3b&hm=330623a1c4b273c609e548740ca66145e5d0365735b3bfbf76348454492b6e4a&=&width=655&height=655",
+    "https://media.discordapp.net/attachments/1106785083379171372/1156341810315149395/20230926_013109.png?ex=65149ebb&is=65134d3b&hm=b30994a003ffd066581127220f869c6d90ad41810e86034e0117df45a4748500&=&width=655&height=655",
+    "https://media.discordapp.net/attachments/1106785083379171372/1156341810868793505/20230926_002553.png?ex=65149ebb&is=65134d3b&hm=71997888a7a9399fc9443d2b454c55aaa409d95b8bfeb9c83f90017265284d64&=&width=655&height=655"
 ]
 EIGHT_BALL_TITLES = [
     'Ruan Mei has calculated..',
