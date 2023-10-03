@@ -62,11 +62,9 @@ class Misc(commands.Cog):
         # funi footer if anyone gets either
         if num == 0:
             embed.set_footer(text=f'[{member.display_name} is now a Certified Hetero]')
-            role = discord.utils.get(ctx.guild.roles, id=HETERO_ROLE)
         elif num == 100:
             embed.set_footer(text=f'[{member.display_name} is now a Certified Gay]')
-            role = discord.utils.get(ctx.guild.roles, id=GAY_ROLE)
-
+            
         await ctx.send(embed=embed)
 
     # Magic 8 Ball
