@@ -1,25 +1,14 @@
-# Custom Modmail Plugins for `Seele#4322` in Seele Mains Honkai Star Rail
-Plugin and Commands list:
-- welcome
-- funpost
-    - advice
-    - gaydar
-    - magic8ball
-- createcmd
-    - create
-    - cdelete
-    - cupdate
-    - clist
+# Custom Modmail Plugins for Ruan Mei
 
 # Plugin Installation
 ```
-?plugin add Meliodas245/mm-plugins/<plugin name>
+?plugin add jej-v/mm-plugins/<plugin name>
 ```
 # Update
 ```
-?plugin update Meliodas245/mm-plugins/<plugin name>
+?plugin update jej-v/mm-plugins/<plugin name>
 ```
 # Remove
 ```
-?plugin remove Meliodas245/mm-plugins/<plugin name>
+?plugin remove jej-v/mm-plugins/<plugin name>
 ```
