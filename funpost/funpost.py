@@ -32,60 +32,11 @@ GAY_STICKERS = [
     "https://static.wikia.nocookie.net/houkai-star-rail/images/1/12/March_7th_Sticker_05.png/revision/latest?cb=20220425065144",
     "https://static.wikia.nocookie.net/houkai-star-rail/images/5/5f/Serval_Sticker_01.png/revision/latest?cb=20230505074134"
 ]
-HETERO_ROLE = 1108845861305339995
-GAY_ROLE = 1108845603338846339
 EIGHT_BALL_TITLES = [
-    'Seele has decided..',
-    'Seele is choosing..',
-    'Seele has thought about this..',
-    '"Seele" has picked this for you..'
+    'Ruan Mei has calculated..',
+    'Ruan_Mei.exe outputs..',
+    'Ruan Mei has thought about this..'
 ]
-SHIP_CHANNELS = {
-    "starch": 1101776593422127144,
-    "brsl": 1101627790492708984,
-    "kafhime": 1103593594440396810
-}
-
-
-async def fetch_yuri_messages(bot: commands.Bot, channel_id: int, ship: str) -> int:
-    """Fetch and save all yuri images from a Discord channel
-
-    :param bot: Discord commands.Bot instance
-    :param channel_id: Channel to fetch images from
-    :param ship: What ship the images are of
-    :return: Number of messages fetched
-    """
-    channel = bot.get_channel(channel_id)
-    if channel:
-        messages = []
-        async for message in channel.history(limit=None, oldest_first=True):
-            if message.embeds and message.type != discord.MessageType.reply and 'tenor.com' not in message.content:
-                messages.append(message.content)
-
-        messages = list(set(messages))  # Make sure messages is unique
-
-        file_name = f'{DIR}/links_{ship}.json'
-
-        # Get the current links
-        if exists(file_name):
-            with open(file_name, 'r') as f:
-                url = json.load(f)
-        else:
-            url = {}
-
-        extractor = URLExtract()
-        for link in messages:
-            if link != '':
-                url[f'url{len(url)}'] = extractor.find_urls(link, with_schema_only=True)[0]  # Only extract the link
-        with open(file_name, 'w') as f:
-            json.dump(url, f, indent=4)
-
-        return len(messages)
-    else:
-        return 0
-
-
-# --------------------------------------------------------------------------------------------------------------------------------
 
 class Misc(commands.Cog):
     """Funpost Plugin"""
@@ -105,7 +56,7 @@ class Misc(commands.Cog):
         num = random.randrange(10001) / 100
 
         embed = discord.Embed(
-            title=f"The 🏳️‍🌈 has decided...",
+            title=f"The Genius Society has decided...",
             description=f"{member.display_name} is **{num}%** gae.",
             colour=discord.Colour.random()
         )
@@ -115,11 +66,9 @@ class Misc(commands.Cog):
         if num == 0:
             embed.set_footer(text=f'[{member.display_name} is now a Certified Hetero]')
             role = discord.utils.get(ctx.guild.roles, id=HETERO_ROLE)
-            await member.add_roles(role)
         elif num == 100:
             embed.set_footer(text=f'[{member.display_name} is now a Certified Gay]')
             role = discord.utils.get(ctx.guild.roles, id=GAY_ROLE)
-            await member.add_roles(role)
 
         await ctx.send(embed=embed)
 
@@ -161,98 +110,6 @@ class Misc(commands.Cog):
         embed.set_thumbnail(url=thumbnail)
         embed.add_field(name="Answer", value=f"{emote} {answer}", inline=False)
         await ctx.send(embed=embed)
-
-    @checks.has_permissions(PermissionLevel.MODERATOR)
-    @commands.command(name='fetchYuri', aliases=['yurifetch', 'fetchyuri', 'fetchgay'])
-    async def fetch_yuri_command(self, ctx: commands.Context, *, ship="brsl"):
-        """Fetched the links in the relative ship thread, only run this once (ever)"""
-        if ship not in SHIP_CHANNELS:
-            return await ctx.reply(
-                'specify the ship to fetch as ' + ", ".join([f"`{i}`" for i in SHIP_CHANNELS.keys()]))
-        channel_id = SHIP_CHANNELS[ship]
-
-        async with ctx.typing():
-            # Fetch the links
-            file_name = f'{DIR}/links_{ship}.json'
-            if exists(file_name):
-                with open(file_name, 'r') as f:
-                    url = json.load(f)
-            else:
-                url = {}
-
-            if len(url) <= 1:
-                message_count = await fetch_yuri_messages(self.bot, channel_id, ship)
-                await ctx.reply(f'fetched {message_count} {ship} links')
-            else:
-                await ctx.reply(f'already fetched {ship}, new messages are automatically fetched')
-
-    # Yuri
-    @checks.has_permissions(PermissionLevel.REGULAR)
-    @commands.command(name='Yuri', aliases=['yuri'])
-    async def Yuri(self, ctx, *, ship="all"):
-        """Sends a random yuri art, default is a random ship"""
-        if ship == 'steven':
-            ship = 'starch'
-        elif ship == "all":
-            ship = random.choice(list(SHIP_CHANNELS.keys()))
-
-        file_name = f'{DIR}/links_{ship}.json'
-        try:
-            with open(file_name, 'r') as f:
-                links = json.load(f)
-
-            # Convert to list and store it to links_list
-            links_list = list(links)
-            if len(links_list) > 0:
-                url = random.choice(links_list)
-                await ctx.reply(links[url])
-            else:
-                await ctx.reply(f'not data fetched')  # just in case
-        except FileNotFoundError:
-            await ctx.reply(f'try writing the ships like: ' + ", ".join([f"`{i}`" for i in SHIP_CHANNELS.keys()]))
-
-    # Yuri + Commands Archive
-    @checks.has_permissions(PermissionLevel.MODERATOR)
-    @commands.command()
-    async def yuriarchive(self, ctx: commands.Context):
-        """Archives the yuri json files"""
-        await ctx.reply(files=[discord.File(f"{DIR}/links_{i}.json") for i in SHIP_CHANNELS.keys()])
-
-    # Listener to autofetch yuri from thread
-    # I don't want to fix this again -jej
-    @commands.Cog.listener("on_message")
-    async def food(self, message):
-        # Check if the message is from one of the threads aforementioned
-        if message.channel.id in SHIP_CHANNELS.values():
-            await asyncio.sleep(1.5)  # not noice
-            if message.embeds and message.type != discord.MessageType.reply and 'tenor.com' not in message.content:
-                # Get the corresponding JSON file name
-
-                file_name = ""
-                for ship, id_ in SHIP_CHANNELS.items():
-                    if message.channel.id == id_:
-                        file_name = f"{DIR}/links_{ship}.json"
-                        break
-
-                # fetch the content of the message
-                try:
-                    with open(file_name, 'r') as f:
-                        url = json.load(f)
-                except FileNotFoundError:  # just in case again
-                    url = {}
-
-                # Extract only the urls
-                extractor = URLExtract()
-
-                # Ignores the comments (i hope)
-                with open(file_name, 'w') as f:
-                    if message.content != '':
-                        url[f'url{len(url)}'] = extractor.find_urls(message.content, with_schema_only=True)[0]
-                        json.dump(url, f, indent=4)
-
-                # Twitter verification checkmark :yello:
-                await message.add_reaction('✅')
-
 
 async def setup(bot):
     await bot.add_cog(Misc(bot))
