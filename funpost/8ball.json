@@ -3,30 +3,30 @@
         "positive" : [
             "It is certain.",
             "Without a doubt.",
-            "You may rely on it.", 
+            "Herta told me that it is possible.", 
             "Yes definitely.", 
             "It is decidedly so.", 
             "As I see it, yes.", 
             "Most likely.", 
-            "Yes.", 
+            "I firmly believe that it is true.", 
             "Outlook good.", 
-            "Signs point to yes."]
+            "My recent experiments tell me it is highly likely."]
     },
     
     {
         "neutral": [
             "Reply hazy try again.", 
-            "Better not tell you now.", 
-            "Ask again later.", 
-            "Cannot predict now.", 
-            "Concentrate and ask again."]
+            "More testing is needed to answer this.", 
+            "It's hard to say; it is best to perform more experimentation.", 
+            "This question is quite fascinating; it does not have a standard answer.", 
+            "It is difficult to discern the answer to this."]
     },
     
     {
         "negative" : [
-            "Don't count on it.", 
-            "Outlook not so good.", 
-            "My sources say no.", 
+            "My study's findings determine that this is false.", 
+            "Screwllum told me that it is not possible.", 
+            "According to my research, it is unlikely.", 
             "Very doubtful.", 
             "My reply is no."]
     }
