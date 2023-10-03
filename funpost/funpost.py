@@ -5,7 +5,6 @@ from os.path import dirname, exists
 
 import discord
 from discord.ext import commands
-from urlextract import URLExtract
 
 from core import checks
 from core.models import PermissionLevel
