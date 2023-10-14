@@ -35,5 +35,5 @@ class Counting(commands.Cog):
                 await message.channel.send("please refrain from typing in this channel")
 
 async def setup(bot):
-    bot.add_cog(Counting(bot))
+    await bot.add_cog(Counting(bot))
 
