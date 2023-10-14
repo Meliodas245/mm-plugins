@@ -11,7 +11,7 @@ class Counting(commands.Cog):
         
     @commands.Cog.listener("on_message")
     async def check_number(self, message: discord.Message):
-        if message.channel.id == 1162783513125335101 and message.author.id != 933867033362329702:
+        if message.channel.id == 1162804188800102501 and message.author.id != 902093847889313833:
             if message.content.isdigit():
                 expected_number = self.lastnumber + 1
                 if int(message.content) == expected_number:
