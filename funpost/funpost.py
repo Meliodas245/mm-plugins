@@ -188,6 +188,7 @@ class Misc(commands.Cog):
                 await ctx.reply(f'already fetched {ship}, new messages are automatically fetched')
 
     # Yuri
+    
     @checks.has_permissions(PermissionLevel.REGULAR)
     @commands.command(name='Yuri', aliases=['yuri'])
     async def Yuri(self, ctx, *, ship="all"):
@@ -205,7 +206,8 @@ class Misc(commands.Cog):
             # Convert to list and store it to links_list
             links_list = list(links)
             if len(links_list) > 0:
-                url = random.choice(links_list)
+                key = random.choice(links_list)
+                url = links[key]
 
                 # Use re to replace both "twitter.com" and "x.com" at once
                 modified_url = re.sub(r'(https?://)(twitter\.com|x\.com)/', r'\1vxtwitter.com/', url)
