@@ -202,16 +202,15 @@ class Misc(commands.Cog):
             with open(file_name, 'r') as f:
                 links = json.load(f)
 
-             # Convert to list and store it to links_list
+            # Convert to list and store it to links_list
             links_list = list(links)
             if len(links_list) > 0:
                 url = random.choice(links_list)
 
-                # fuck elon -cho
-                url = re.sub(r'https://twitter\.com/', r'https://vxtwitter.com/', url)
-                url = re.sub(r'https://x\.com/', r'https://vxtwitter.com/', url)
+                # Use re to replace both "twitter.com" and "x.com" at once
+                modified_url = re.sub(r'(https?://)(twitter\.com|x\.com)/', r'\1vxtwitter.com/', url)
 
-                await ctx.send(links[url])
+                await ctx.send(modified_url)
             else:
                 await ctx.reply(f'not data fetched')  # just in case
         except FileNotFoundError:
