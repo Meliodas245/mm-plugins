@@ -24,6 +24,7 @@ Plugin and Commands list:
   - autoreactsearch
 - karaoke
 - announcecodes
+- Counting Channel 
 
 # Plugin Installation
 ```
