@@ -25,7 +25,7 @@ class Counting(commands.Cog):
                         colour=discord.Colour.red()
                     )
                     embed.add_field(name="Highest number reached", value=self.lastnumber)
-                    embed.add_field(name="The Count has been reset to 0")
+                    embed.add_field(name="The Count has been reset to 0", value="Good luck next time")
                     embed.set_thumbnail(
                         url="https://img-os-static.hoyolab.com/communityWeb/upload/19dacf2bf7dad6cea3b4a1d8d68045a0.png"
                     )
