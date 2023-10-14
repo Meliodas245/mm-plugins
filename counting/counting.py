@@ -7,9 +7,10 @@ class Counting(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.lastnumber = 0
-
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+        
+        
+    @commands.Cog.listener("on_message")
+    async def check_number(self, message: discord.Message):
         if message.channel.id == 1162783513125335101 and message.author.id != 933867033362329702:
             if message.content.isdigit():
                 expected_number = self.lastnumber + 1
@@ -35,5 +36,4 @@ class Counting(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Counting(bot))
-
 
