@@ -1,13 +1,14 @@
 import discord
 from discord.ext import commands
 
-lastnumber = 0
+
 
 class Counting(commands.Cog):
     """Counting Plugin"""
 
     def __init__(self, bot):
         self.bot = bot
+        self.lastnumber = 0
         
     @commands.Cog.listener("on_message")
     async def check_number(self, message: discord.Message):
