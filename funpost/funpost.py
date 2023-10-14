@@ -209,7 +209,7 @@ class Misc(commands.Cog):
                 key = random.choice(links_list)
                 url = links[key]
 
-                # Use re to replace both "twitter.com" and "x.com" at once
+                # fuck elon -cho
                 modified_url = re.sub(r'(https?://)(twitter\.com|x\.com)/', r'\1vxtwitter.com/', url)
 
                 await ctx.send(modified_url)
