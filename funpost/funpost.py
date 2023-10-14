@@ -2,6 +2,7 @@ import asyncio
 import json
 import random
 from os.path import dirname, exists
+import re
 
 import discord
 from discord.ext import commands
@@ -187,6 +188,7 @@ class Misc(commands.Cog):
                 await ctx.reply(f'already fetched {ship}, new messages are automatically fetched')
 
     # Yuri
+    
     @checks.has_permissions(PermissionLevel.REGULAR)
     @commands.command(name='Yuri', aliases=['yuri'])
     async def Yuri(self, ctx, *, ship="all"):
@@ -204,8 +206,13 @@ class Misc(commands.Cog):
             # Convert to list and store it to links_list
             links_list = list(links)
             if len(links_list) > 0:
-                url = random.choice(links_list)
-                await ctx.reply(links[url])
+                key = random.choice(links_list)
+                url = links[key]
+
+                # fuck elon -cho
+                modified_url = re.sub(r'(https?://)(twitter\.com|x\.com)/', r'\1vxtwitter.com/', url)
+
+                await ctx.send(modified_url)
             else:
                 await ctx.reply(f'not data fetched')  # just in case
         except FileNotFoundError:
