@@ -14,9 +14,10 @@ class Counting(commands.Cog):
     async def check_number(self, message: discord.Message):
         if message.channel.id == 1162783513125335101 and message.author.id != 933867033362329702:
             if message.content.isdigit():
-                if message.content == lastnumber+1 :
+                expected_number = lastnumber+1
+                if message.content == expected_number :
                     await message.add_reaction('✅')
-                    lastnumber = message.content
+                    lastnumber = expected_number
                 else:
                     dumb = message.author.display_name()
                     await message.add_reaction('❌')
