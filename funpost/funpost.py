@@ -2,6 +2,7 @@ import asyncio
 import json
 import random
 from os.path import dirname, exists
+import re
 
 import discord
 from discord.ext import commands
@@ -201,11 +202,16 @@ class Misc(commands.Cog):
             with open(file_name, 'r') as f:
                 links = json.load(f)
 
-            # Convert to list and store it to links_list
+             # Convert to list and store it to links_list
             links_list = list(links)
             if len(links_list) > 0:
                 url = random.choice(links_list)
-                await ctx.reply(links[url])
+
+                # fuck elon -cho
+                url = re.sub(r'https://twitter\.com/', r'https://vxtwitter.com/', url)
+                url = re.sub(r'https://x\.com/', r'https://vxtwitter.com/', url)
+
+                await ctx.send(links[url])
             else:
                 await ctx.reply(f'not data fetched')  # just in case
         except FileNotFoundError:
