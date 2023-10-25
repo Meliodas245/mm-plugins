@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 COUNTING_CHANNEL = 1162804188800102501
+DUPLICATE_GRACE = 0.75  # Time in seconds to be lenient to duplicate messages
 
 
 class Counting(commands.Cog):
@@ -22,6 +23,8 @@ class Counting(commands.Cog):
         if message.channel.id != COUNTING_CHANNEL:  # Not the counting channel
             return
 
+        # TODO: Implement detections & history searching to make absolute sure that self.last_number and
+        #  self.last_message will always exist (and be accurate)
         async with self.lock:
             if message.content.strip().isdigit():  # Is a number
                 current_number = int(message.content.strip())
@@ -33,6 +36,18 @@ class Counting(commands.Cog):
                     return await message.add_reaction('✅')
                 else:  # They can't count :(
                     await message.add_reaction('❌')
+
+                    # Grace period for when people send the same number at the same time
+                    if current_number == self.last_number and message.author.id != self.last_message.author.id and (
+                            message.created_at - self.last_message.created_at
+                    ).total_seconds() <= DUPLICATE_GRACE:
+                        return await message.reply(embed=discord.Embed(
+                            title="That doesn't look right, but I'll give you a chance...",
+                            description=f"{message.author.mention} sent a duplicate number, but within the grace period. "
+                                        f"The count is still at **{self.last_number:,d}**.",
+                            colour=discord.Colour.yellow()
+                        ))
+
                     embed = discord.Embed(
                         title="That doesn't look right! Better luck next time :)",
                         description=f"{message.author.mention} ruined the count at **{self.last_number:,d}**. Next number is **1**.\n\n"
