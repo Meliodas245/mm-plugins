@@ -7,6 +7,11 @@ COUNTING_CHANNEL = 1162804188800102501
 DUPLICATE_GRACE = 0.75  # Time in seconds to be lenient to duplicate messages
 
 
+def set_embed_author(embed: discord.Embed, member: discord.Member):
+    """Sets the author field for an embed from a member object, following a predefined format."""
+    embed.set_author(name=f"{member.display_name} ({member.id})", icon_url=member.display_avatar.url)
+
+
 class Counting(commands.Cog):
     """Counting Plugin"""
 
@@ -18,6 +23,7 @@ class Counting(commands.Cog):
 
     @commands.Cog.listener("on_message")
     async def counting_on_message(self, message: discord.Message):
+        """on_message event handler to allow for detection and handling of counting messages"""
         if not message.author or not message.author.guild or message.author.bot:  # Irrelevant
             return
         if message.channel.id != COUNTING_CHANNEL:  # Not the counting channel
@@ -54,20 +60,49 @@ class Counting(commands.Cog):
                                     "*If this detection appears incorrect, please report it to the bot development team.*",
                         colour=discord.Colour.red()
                     )
-                    embed.set_author(name=message.author.display_name, icon_url=message.author.display_avatar.url)
                     embed.set_thumbnail(
                         url="https://img-os-static.hoyolab.com/communityWeb/upload/19dacf2bf7dad6cea3b4a1d8d68045a0.png"
                     )
+                    set_embed_author(embed, message.author)
                     self.last_number = 0
                     self.last_message = await message.channel.send(content="0", embed=embed)  # "0" content allows for count detection on restart
                     return
             else:  # Not a number
                 # We are resending the message as our own embed to allow for the restatement of the number (so it doesn't get lost)
-                embed = discord.Embed(description=message.content)
-                embed.set_author(name=f"{message.author.display_name} ({message.author.id})", icon_url=message.author.display_avatar.url)
+                embed = discord.Embed(description=message.content, colour=discord.Colour.light_gray())
                 embed.add_field(name="​", value=f"*The count is currently at: **`{self.last_number}`***")
+                set_embed_author(embed, message.author)
                 await message.delete()
                 return await message.channel.send(embed=embed)
+
+    @commands.Cog.listener("on_message_edit")
+    async def counting_on_message_edit(self, before: discord.Message, after: discord.Message):
+        """on_message_edit event handler to allow for handling of counting message edits"""
+        if not self.last_message or before.id != self.last_message.id:
+            return
+
+        embed = discord.Embed(
+            description=f"{before.author.mention} tried editing their message...\n\n"
+                        f"The count is currently at: **`{self.last_number}`**",
+            colour=discord.Colour.green()
+        )
+        set_embed_author(embed, before.author)
+        self.last_message = await before.channel.send(content=str(self.last_number), embed=embed)
+        await before.delete()
+
+    @commands.Cog.listener("on_message_delete")
+    async def counting_on_message_delete(self, message: discord.Message):
+        """on_message_delete event handler to allow for handling of counting message deletions"""
+        if not self.last_message or message.id != self.last_message.id:
+            return
+
+        embed = discord.Embed(
+            description=f"{message.author.mention} tried deleting their message...\n\n"
+                        f"The count is currently at: **`{self.last_number}`**",
+            colour=discord.Colour.dark_green()
+        )
+        set_embed_author(embed, message.author)
+        self.last_message = await message.channel.send(content=str(self.last_number), embed=embed)
 
 
 async def setup(bot):
