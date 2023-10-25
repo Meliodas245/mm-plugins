@@ -50,7 +50,9 @@ class Counting(commands.Cog):
         )
         set_embed_author(embed, message.author)
         self.last_number = 0
-        self.last_message = await message.channel.send(content="0", embed=embed)  # "0" content allows for count detection on restart
+        self.last_message = await message.channel.send(
+            content="0", embed=embed
+        )  # "0" content allows for count detection on restart
         return
 
     async def assert_last(self, default_message: discord.Message = None):
@@ -144,7 +146,10 @@ class Counting(commands.Cog):
             else:  # Not a number
                 # We are resending the message as our own embed to allow for the restatement of the number (so it doesn't get lost)
                 embed = discord.Embed(description=message.content, colour=discord.Colour.light_gray())
-                embed.add_field(name="​", value=f"*The count is currently at: **`{self.last_number:,d}`***")
+                embed.add_field(
+                    name="​",
+                    value=f"*The count is currently at: **`{self.last_number:,d}`**, by {self.last_message.author.mention}*"
+                )
                 set_embed_author(embed, message.author)
                 await message.delete()
                 return await message.channel.send(embed=embed)
