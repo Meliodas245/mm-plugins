@@ -85,7 +85,7 @@ class Counting(commands.Cog):
             content = get_simplified_contents(default_message)
             if content.isdigit():
                 self.last_number = int(content) - 1
-                self.last_message = default_message
+                self.last_message = await self.channel.send(content=str(self.last_number))  # So double-count doesn't kick in
                 return
 
         self.last_number = 0
