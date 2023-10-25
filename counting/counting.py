@@ -29,7 +29,7 @@ class Counting(commands.Cog):
         self.bot = bot
         self.channel = bot.get_channel(COUNTING_CHANNEL)
         self.last_number = None
-        self.last_message = None  # For use in detecting notable message edits & deletes
+        self.last_message = None  # DO NOT RELY ON FOR CURRENT #, use self.last_number instead
         self.lock = asyncio.Lock()  # To prevent dual-processing edge-cases
 
     async def fail(self, title: str, message: discord.Message):
@@ -85,7 +85,7 @@ class Counting(commands.Cog):
             content = get_simplified_contents(default_message)
             if content.isdigit():
                 self.last_number = int(content) - 1
-                self.last_message = await self.channel.send(content=str(self.last_number))  # So double-count doesn't kick in
+                self.last_message = await self.channel.send(content="*Count Recovered - Ignore This Message*")  # So double-count doesn't kick in
                 return
 
         self.last_number = 0
