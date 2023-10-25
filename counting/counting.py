@@ -31,15 +31,13 @@ class Counting(commands.Cog):
                 await message.add_reaction('❌')
                 embed = discord.Embed(
                     title="That doesn't look right! Better luck next time :)",
-                    description=f"{message.author.mention} ruined the count at **{self.last_number:,d}**. Next number is **1**.",
+                    description=f"{message.author.mention} ruined the count at **{self.last_number:,d}**. Next number is **1**.\n\n"
+                                "*If this detection appears incorrect, please report it to the bot development team.*",
                     colour=discord.Colour.red()
                 )
                 embed.set_author(name=message.author.display_name, icon_url=message.author.display_avatar.url)
                 embed.set_thumbnail(
                     url="https://img-os-static.hoyolab.com/communityWeb/upload/19dacf2bf7dad6cea3b4a1d8d68045a0.png"
-                )
-                embed.set_footer(
-                    text="*If this detection appears incorrect, please report it to the bot development team.*"
                 )
                 self.last_number = 0
                 self.last_message = await message.channel.send(content="0", embed=embed)  # "0" content allows for count detection on restart
@@ -47,8 +45,8 @@ class Counting(commands.Cog):
         else:  # Not a number
             # We are resending the message as our own embed to allow for the restatement of the number (so it doesn't get lost)
             embed = discord.Embed(description=message.content)
-            embed.set_author(name=f"{message.author.display_name} (`{message.author.id}`)", icon_url=message.author.display_avatar.url)
-            embed.set_footer(text=f"*The count is currently at: **`{self.last_number:,d}`***")
+            embed.set_author(name=f"{message.author.display_name} ({message.author.id})", icon_url=message.author.display_avatar.url)
+            embed.add_field(name="​", value=f"*The count is currently at: **`{self.last_number}`***")
             await message.delete()
             return await message.channel.send(embed=embed)
 
