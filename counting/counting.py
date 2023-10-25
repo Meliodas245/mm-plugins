@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 COUNTING_CHANNEL = 1162804188800102501
+DEVELOPER_ROLE = 1087928500893265991
 DUPLICATE_GRACE = 0.75  # Time in seconds to be lenient to duplicate messages
 
 
@@ -127,6 +128,17 @@ class Counting(commands.Cog):
         )
         set_embed_author(embed, message.author)
         self.last_message = await message.channel.send(content=str(self.last_number), embed=embed)
+
+    @commands.command()
+    @commands.has_role(DEVELOPER_ROLE)
+    async def countingoverride(self, ctx: commands.Context, number: int):
+        """Override the current count in counting"""
+        self.last_number = number
+        self.last_message = await self.bot.get_channel(COUNTING_CHANNEL).send(content=str(number), embed=discord.Embed(
+            title="Count Overridden!",
+            description=f"The current count has been set to: **`{number:,d}`** by {ctx.author.mention}.",
+            colour=discord.Colour.green()
+        ))
 
 
 async def setup(bot):
