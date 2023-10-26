@@ -1,11 +1,16 @@
+import ast
 import asyncio
 
 import discord
+import simpleeval
 from discord.ext import commands
 
 COUNTING_CHANNEL = 1162804188800102501
 DEVELOPER_ROLE = 1087928500893265991
 DUPLICATE_GRACE = 0.75  # Time in seconds to be lenient to duplicate messages
+s = simpleeval.SimpleEval()
+s.operators[ast.BitXor] = simpleeval.safe_power  # ^ symbol, which most people use as **
+simpleeval.MAX_POWER = 100  # We're never getting that far (prevents timely exponent operations)
 
 
 def set_embed_author(embed: discord.Embed, member: discord.Member):
@@ -17,9 +22,24 @@ def set_embed_author(embed: discord.Embed, member: discord.Member):
     embed.set_author(name=f"{member.display_name} ({member.id})", icon_url=member.display_avatar.url)
 
 
-def get_simplified_contents(message: discord.Message):
-    """Gets the simplified contents of a message to check for numbers -- this means no whitespace, and no commas"""
-    return message.content.strip().replace(",", "")
+async def safe_eval(string: str):
+    """Async wrapper for s.eval() so we can use asyncio.wait_for"""
+    return s.eval(string)
+
+
+async def get_num(message: discord.Message):
+    """Get a number from a user input, potentially containing mathematical expressions"""
+    simple_contents = message.content.strip().replace(",", "")
+    if simple_contents.isdigit():
+        return int(simple_contents)
+
+    try:
+        eval_output = await asyncio.wait_for(safe_eval(message.content), timeout=2)  # 2 second timeout, just in case
+        if isinstance(eval_output, int):
+            return eval_output
+    except (Exception,):
+        return None
+    return None
 
 
 class Counting(commands.Cog):
@@ -86,9 +106,9 @@ class Counting(commands.Cog):
                 continue
             if message.author.bot and message.author.id != self.bot.user.id:  # Bot that isn't us
                 continue
-            content = get_simplified_contents(message)
-            if content.isdigit():
-                self.last_number = int(content)
+            num = await get_num(message)
+            if num:
+                self.last_number = num
                 self.last_message = message
                 if not any([i.me and i.emoji == "✅" for i in message.reactions]):
                     await message.add_reaction('✅')
@@ -98,9 +118,9 @@ class Counting(commands.Cog):
             return
 
         if default_message:  # Check the default_message, if provided, for a valid count
-            content = get_simplified_contents(default_message)
-            if content.isdigit():
-                self.last_number = int(content) - 1
+            num = await get_num(default_message)
+            if num:
+                self.last_number = num - 1
                 self.last_message = await self.channel.send(
                     content="*Count Recovered - Ignore This Message*")  # So double-count doesn't kick in
                 return
@@ -125,9 +145,8 @@ class Counting(commands.Cog):
 
         async with self.lock:  # Utilize async lock to prevent parallel message processing edge cases
             await self.assert_last(message)  # Ensure self.last_number and self.last_message exists
-            content = get_simplified_contents(message)
-            if content.isdigit():  # Is a number
-                current_number = int(content)
+            current_number = await get_num(message)
+            if current_number:  # Is a number
                 expected_number = self.last_number + 1
 
                 if current_number != expected_number:  # They can't count :(
