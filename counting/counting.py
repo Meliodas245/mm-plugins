@@ -77,7 +77,12 @@ async def safe_eval(string: str):
 
 
 async def get_num(message: discord.Message, reply: bool = False):
-    """Get a number from a user input, potentially containing mathematical expressions"""
+    """Get a number from a user input, potentially containing mathematical expressions
+
+    :param message: Message to get the input from
+    :param reply: Whether to reply to the user in select fail-evaluate circumstances
+    :return: Number if successful, None if unsuccessful
+    """
     simple_contents = message.content.strip().replace(",", "")
     if simple_contents.isdigit():
         return int(simple_contents)
@@ -174,7 +179,7 @@ class Counting(commands.Cog):
                 content = match.group("code")
             else:
                 content = self.last_message.content
-            return get_exp_code(content) + "\n"
+            return f"\n{get_exp_code(content)}\n"
 
     async def fail(self, title: str, message: discord.Message):
         """Method to send a count-failed message with a customizable title.
