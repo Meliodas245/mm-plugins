@@ -37,7 +37,7 @@ s.functions.update(  # Add additional functions
 s.names.update(  # Add additional variables
     pi=math.pi,
 )
-simpleeval.MAX_POWER = 1000  # We're never getting that far (prevents timely exponent operations)
+simpleeval.MAX_POWER = 10000  # We're never getting that far (prevents timely exponent operations)
 simpleeval.MAX_STRING_LENGTH = 10000  # Shouldn't be using strings much anyway (prevents memory exhaustion)
 
 
