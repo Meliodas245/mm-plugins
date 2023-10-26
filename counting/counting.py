@@ -13,15 +13,25 @@ DUPLICATE_GRACE = 0.75  # Time in seconds to be lenient to duplicate messages
 CODE_BLOCK_REGEX = re.compile(
     r"(?P<delim>(?P<block>```)|``?)(?(block)(?:(?P<lang>[a-z]+)\n)?)(?:[ \t]*\n)*(?P<code>.*?)\s*(?P=delim)",
     re.DOTALL | re.IGNORECASE
-)
+)  # Regex to detect and extra code from Discord code blocks
+
+# Create and configure SimpleEval parser to handle expressions
 s = simpleeval.SimpleEval()
 del s.operators[ast.BitXor]  # ^ symbol, which people may confuse for ** (would override, but syntax is slightly diff)
 del s.operators[ast.BitOr]  # | symbol, which people may confuse for abs
+del s.functions["rand"]  # Randomly generates numbers, would cause griefs more often than not
+del s.functions["randint"]  # Randomly generates numbers, would cause griefs more often than not
 s.functions.update(  # Add additional functions
     floor=math.floor,
+    rounddown=math.floor,
+    round_down=math.floor,
     ceil=math.ceil,
+    roundup=math.ceil,
+    round_up=math.ceil,
     round=round,
     sqrt=math.sqrt,
+    sqroot=math.sqrt,
+    squareroot=math.sqrt,
     abs=abs,
 )
 s.names.update(  # Add additional variables
