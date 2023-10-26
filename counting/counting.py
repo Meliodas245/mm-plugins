@@ -92,6 +92,7 @@ async def get_num(message: discord.Message, reply: bool = False):
         content = match.group("code")
     else:
         content = message.content
+    fail_msg = None
     try:
         eval_output = await asyncio.wait_for(safe_eval(content), timeout=2)  # 2 second timeout, just in case
         if isinstance(eval_output, float):
@@ -113,40 +114,22 @@ async def get_num(message: discord.Message, reply: bool = False):
         if isinstance(eval_output, int):
             return eval_output
     except simpleeval.NumberTooHigh:
-        if reply:
-            await expression_reply(
-                message, content,
-                "Why don't you try and calculate that?\n*(A number in your expression is too big -- "
-                "some operations have size limits to prevent time-expensive operations)*"
-            )
+        fail_msg = ("Why don't you try and calculate that?\n*(A number in your expression is too big -- "
+                    "some operations have size limits to prevent time-expensive operations)*")
     except simpleeval.IterableTooLong:
-        if reply:
-            await expression_reply(
-                message, content,
-                "An iterable in your expression is way too big -- there are size limits to prevent "
-                "memory-expensive operations"
-            )
+        fail_msg = ("An iterable in your expression is way too big -- there are size limits to prevent "
+                    "memory-expensive operations")
     except simpleeval.MultipleExpressions:
-        if reply:
-            await expression_reply(
-                message, content,
-                "I've detected multiple expressions in your message, only one expression is allowed.\n"
-                "||*(Check for ;'s)*||"
-            )
+        fail_msg = ("I've detected multiple expressions in your message, only one expression is allowed.\n"
+                    "||*(Check for ;'s)*||")
     except simpleeval.FunctionNotDefined as e:
-        if reply:
-            await expression_reply(
-                message, content,
-                f"The function `{getattr(e, 'func_name').replace('`', '[backtick]')}` does not exist."
-            )
+        fail_msg = f"The function `{getattr(e, 'func_name').replace('`', '[backtick]')}` does not exist."
     except simpleeval.OperatorNotDefined as e:
-        if reply:
-            await expression_reply(
-                message, content,
-                f"The operator `{e.attr}` does not exist."
-            )
+        fail_msg = f"The operator `{e.attr}` does not exist."
     except (Exception,):
         pass
+    if reply and fail_msg is not None:
+        await expression_reply(message, content, fail_msg)
     return None
 
 
