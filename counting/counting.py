@@ -1,5 +1,6 @@
 import ast
 import asyncio
+import math
 import re
 
 import discord
@@ -16,6 +17,13 @@ CODE_BLOCK_REGEX = re.compile(
 s = simpleeval.SimpleEval()
 del s.operators[ast.BitXor]  # ^ symbol, which people may confuse for ** (would override, but syntax is slightly diff)
 del s.operators[ast.BitOr]  # | symbol, which people may confuse for abs
+s.functions.update(  # Add additional functions
+    floor=math.floor,
+    ceil=math.ceil,
+    round=round,
+    sqrt=math.sqrt,
+    abs=abs,
+)
 simpleeval.MAX_POWER = 1000  # We're never getting that far (prevents timely exponent operations)
 
 
@@ -46,6 +54,22 @@ async def get_num(message: discord.Message):
         else:
             content = message.content
         eval_output = await asyncio.wait_for(safe_eval(content), timeout=2)  # 2 second timeout, just in case
+        if isinstance(eval_output, float):
+            if eval_output.is_integer():  # Float type, but whole number
+                eval_output = int(eval_output)  # Convert to integer so it succeeds int check later
+            else:  # Float type, not a whole number
+                await message.reply(embed=discord.Embed(
+                    description=f"I've calculated:\n```py\n{content.replace('`','[backtick]')}\n```\n= "
+                                f"*`{eval_output}`*\n\nTo prevent unexpected behaviour, I do not automatically convert"
+                                "decimal numbers to whole numbers. You can do this yourself with:\n"
+                                "- `int(your content)`/`floor(your content)`: Rounds down (truncates)\n"
+                                "- `ceil(your content)`: Rounds up\n"
+                                "- `round(your content)`: Rounds (<= 0.5 down, > 0.5 up)\n"
+                                "- `dividend//divisor`: Floor division, divides then rounds down (truncates)",
+                    colour=discord.Colour.dark_grey()
+                ), delete_after=15)
+                return None
+
         if isinstance(eval_output, int):
             return eval_output
     except (Exception,):
