@@ -31,7 +31,7 @@ class Counting(commands.Cog):
         self.last_number = None
         self.last_message = None  # DO NOT RELY ON FOR CURRENT #, use self.last_number instead
         self.lock = asyncio.Lock()  # To prevent dual-processing edge-cases
-        self.bot.loop.create_task(self.async_init())
+        self.bot.loop.create_task(self.async_init())  # Run async_init, which performs async setup tasks
 
     async def async_init(self):
         """Perform asynchronous actions when the Cog initializes"""
@@ -45,6 +45,7 @@ class Counting(commands.Cog):
         :param message: Message that resulted in the count-fail
         """
         await message.add_reaction('❌')
+
         embed = discord.Embed(
             title=title,
             description=f"{message.author.mention} ruined the count at **{self.last_number:,d}**. Next number is **1**.\n\n"
@@ -55,10 +56,11 @@ class Counting(commands.Cog):
             url="https://img-os-static.hoyolab.com/communityWeb/upload/19dacf2bf7dad6cea3b4a1d8d68045a0.png"
         )
         set_embed_author(embed, message.author)
+
         self.last_number = 0
         self.last_message = await message.channel.send(
             content="0", embed=embed
-        )  # "0" content allows for count detection on restart
+        )  # "0" content allows for count recovery
         return
 
     async def assert_last(self, default_message: discord.Message = None, only_history: bool = False):
@@ -75,9 +77,10 @@ class Counting(commands.Cog):
         :param default_message: Message to attempt to default to if search fails. Will not be included in history search.
         :param only_history: Whether to only attempt a history recover, if this is True, self.last_number and self.last_message cannot be guaranteed to exist.
         """
-        if self.last_number is not None and self.last_message is not None:
+        if self.last_number is not None and self.last_message is not None:  # If they already exist, return
             return
 
+        # Search last 100 messages (in order of most recent -> oldest) for a valid count
         async for message in self.channel.history(limit=100, oldest_first=False):
             if default_message and message.id == default_message.id:  # Do not include message provided as default
                 continue
@@ -91,16 +94,18 @@ class Counting(commands.Cog):
                     await message.add_reaction('✅')
                 return
 
-        if only_history:
+        if only_history:  # If we only want to search history, abandon the recovery process
             return
 
-        if default_message:
+        if default_message:  # Check the default_message, if provided, for a valid count
             content = get_simplified_contents(default_message)
             if content.isdigit():
                 self.last_number = int(content) - 1
-                self.last_message = await self.channel.send(content="*Count Recovered - Ignore This Message*")  # So double-count doesn't kick in
+                self.last_message = await self.channel.send(
+                    content="*Count Recovered - Ignore This Message*")  # So double-count doesn't kick in
                 return
 
+        # All recovery steps failed, reset count to 0
         self.last_number = 0
         self.last_message = await self.channel.send(content="0", embed=discord.Embed(
             title="Count Reset to 0",
@@ -118,8 +123,8 @@ class Counting(commands.Cog):
         if message.channel.id != COUNTING_CHANNEL:  # Not the counting channel
             return
 
-        async with self.lock:
-            await self.assert_last(message)
+        async with self.lock:  # Utilize async lock to prevent parallel message processing edge cases
+            await self.assert_last(message)  # Ensure self.last_number and self.last_message exists
             content = get_simplified_contents(message)
             if content.isdigit():  # Is a number
                 current_number = int(content)
@@ -137,14 +142,15 @@ class Counting(commands.Cog):
                                         f"The count is still at **{self.last_number:,d}**.",
                             colour=discord.Colour.yellow()
                         ))
-                    print(self.last_number, self.last_message.jump_url)
+
                     return await self.fail("That doesn't look right! Better luck next time :)", message)
                 elif message.author.id == self.last_message.author.id:  # They're trying to count by themselves!
                     return await self.fail("You can't count twice in a row!", message)
-                elif self.last_message.author.id == self.bot.user.id and len(self.last_message.embeds) > 0:
+                elif self.last_message.author.id == self.bot.user.id and len(
+                        self.last_message.embeds) > 0:  # Self-count, but they're trying to avoid detection
                     embed = self.last_message.embeds[0]
-                    if ("editing" in embed.description or "deleting" in embed.description
-                    ) and str(message.author.id) in embed.author.name:  # Not a edit/delete message resulting from them
+                    if ("editing" in embed.description or "deleting" in embed.description) and str(
+                            message.author.id) in embed.author.name:  # Not a edit/delete message resulting from them
                         await message.reply(
                             content="Don't try to edit or delete your messages to get around detections please.\n"
                                     "If you're seeing this by pure coincidence, don't worry about it.",
@@ -152,7 +158,7 @@ class Counting(commands.Cog):
                         )
                         return await self.fail("You can't count twice in a row!", message)
 
-                # They can count!
+                # They can count! - make sure any previous failing checks end with a return, or this code will run on a fail
                 self.last_number = current_number
                 self.last_message = message
                 return await message.add_reaction('✅')
@@ -160,7 +166,7 @@ class Counting(commands.Cog):
                 # We are resending the message as our own embed to allow for the restatement of the number (so it doesn't get lost)
                 embed = discord.Embed(description=message.content, colour=discord.Colour.light_gray())
                 embed.add_field(
-                    name="​",
+                    name="​",  # Zero-width space for an empty field name (using field as footer doesn't allow MD formatting)
                     value=f"*The count is currently at: **`{self.last_number:,d}`**, by {self.last_message.author.mention}*"
                 )
                 set_embed_author(embed, message.author)
@@ -180,7 +186,7 @@ class Counting(commands.Cog):
         )
         set_embed_author(embed, before.author)
         self.last_message = await before.channel.send(content=str(self.last_number), embed=embed)
-        await before.delete()
+        await before.delete()  # Delete original message after self.last_message is set, to prevent triggering deletion detection
 
     @commands.Cog.listener("on_message_delete")
     async def counting_on_message_delete(self, message: discord.Message):
