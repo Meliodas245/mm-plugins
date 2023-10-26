@@ -232,6 +232,12 @@ class Counting(commands.Cog):
                 self.last_message = message
                 return await message.add_reaction('✅')
             else:  # Not a number
+                # We're allowing bot developers to explicitly specify that their message should be ignored, for
+                #  circumstances where message resend is not ideal (e.g. when the feature is broken, or for important
+                #  announcements requiring a normal message)
+                if message.content.startswith("//") and DEVELOPER_ROLE in [i.id for i in message.author.roles]:
+                    return
+
                 # We are resending the message as our own embed to allow for the restatement of the number (so it doesn't get lost)
                 embed = discord.Embed(description=message.content, colour=discord.Colour.light_gray())
                 embed.add_field(
