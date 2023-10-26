@@ -38,6 +38,17 @@ s.functions.update(  # Add additional functions
     sqrt=math.sqrt,
     sqroot=math.sqrt,
     squareroot=math.sqrt,
+    sin=lambda x: math.sin(
+        math.radians(x)
+    ),  # sin takes radians, input as degrees is simpler, so convert deg -> rad
+    cos=lambda x: math.cos(
+        math.radians(x)
+    ),  # cos takes radians, input as degrees is simpler, so convert deg -> rad
+    tan=lambda x: math.tan(
+        math.radians(x)
+    ),  # tan takes radians, input as degrees is simpler, so convert deg -> rad
+    degrees=math.degrees,  # Offer rad -> deg conversion
+    radians=math.radians,  # Offer deg -> rad conversion
     abs=abs,
 )
 s.names.update(  # Add additional variables
