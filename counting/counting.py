@@ -90,11 +90,13 @@ async def expression_reply(
     :param kwargs: kwargs to relay to message.reply()
     :return: Replied message object
     """
+    embed = discord.Embed(
+        description=f"{get_exp_code(exp)}\n{content}",
+        colour=discord.Colour.dark_grey(),
+    )
+    embed.set_footer(text=f"This message will delete itself in {delete_after} seconds.")
     return await message.reply(
-        embed=discord.Embed(
-            description=f"{get_exp_code(exp)}\n{content}",
-            colour=discord.Colour.dark_grey(),
-        ),
+        embed=embed,
         delete_after=delete_after,
         **kwargs,
     )
@@ -136,12 +138,13 @@ async def get_num(message: discord.Message, reply: bool = False):
                     await expression_reply(
                         message,
                         content,
-                        f"= *{eval_output}*\n\nTo prevent unexpected behaviour, I do not automatically convert"
+                        f"= *`{eval_output}`*\n\nTo prevent unexpected behaviour, I do not automatically convert "
                         "decimal numbers to whole numbers. You can do this yourself with:\n"
                         "- `int(your content)`/`floor(your content)`: Rounds down (truncates)\n"
                         "- `ceil(your content)`: Rounds up\n"
                         "- `round(your content)`: Rounds (<= 0.5 down, > 0.5 up)\n"
                         "- `dividend//divisor`: Floor division, divides then rounds down (truncates)",
+                        delete_after=30,
                     )
                 return None
 
@@ -156,11 +159,6 @@ async def get_num(message: discord.Message, reply: bool = False):
         fail_msg = (
             "An iterable in your expression is way too big -- there are size limits to prevent "
             "memory-expensive operations"
-        )
-    except simpleeval.MultipleExpressions:
-        fail_msg = (
-            "I've detected multiple expressions in your message, only one expression is allowed.\n"
-            "||*(Check for ;'s)*||"
         )
     except simpleeval.FunctionNotDefined as e:
         fail_msg = f"The function `{getattr(e, 'func_name').replace('`', '[backtick]')}` does not exist."
