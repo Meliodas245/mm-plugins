@@ -45,7 +45,7 @@ async def safe_eval(string: str):
     return s.eval(string)
 
 
-async def get_num(message: discord.Message):
+async def get_num(message: discord.Message, reply: bool = False):
     """Get a number from a user input, potentially containing mathematical expressions"""
     simple_contents = message.content.strip().replace(",", "")
     if simple_contents.isdigit():
@@ -62,16 +62,17 @@ async def get_num(message: discord.Message):
             if eval_output.is_integer():  # Float type, but whole number
                 eval_output = int(eval_output)  # Convert to integer so it succeeds int check later
             else:  # Float type, not a whole number
-                await message.reply(embed=discord.Embed(
-                    description=f"I've calculated:\n```py\n{content.replace('`','[backtick]')}\n```\n= "
-                                f"*`{eval_output}`*\n\nTo prevent unexpected behaviour, I do not automatically convert"
-                                "decimal numbers to whole numbers. You can do this yourself with:\n"
-                                "- `int(your content)`/`floor(your content)`: Rounds down (truncates)\n"
-                                "- `ceil(your content)`: Rounds up\n"
-                                "- `round(your content)`: Rounds (<= 0.5 down, > 0.5 up)\n"
-                                "- `dividend//divisor`: Floor division, divides then rounds down (truncates)",
-                    colour=discord.Colour.dark_grey()
-                ), delete_after=15)
+                if reply:
+                    await message.reply(embed=discord.Embed(
+                        description=f"I've calculated:\n```py\n{content.replace('`','[backtick]')}\n```\n= "
+                                    f"*`{eval_output}`*\n\nTo prevent unexpected behaviour, I do not automatically "
+                                    "convert decimal numbers to whole numbers. You can do this yourself with:\n"
+                                    "- `int(your content)`/`floor(your content)`: Rounds down (truncates)\n"
+                                    "- `ceil(your content)`: Rounds up\n"
+                                    "- `round(your content)`: Rounds (<= 0.5 down, > 0.5 up)\n"
+                                    "- `dividend//divisor`: Floor division, divides then rounds down (truncates)",
+                        colour=discord.Colour.dark_grey()
+                    ), delete_after=15)
                 return None
 
         if isinstance(eval_output, int):
@@ -199,7 +200,7 @@ class Counting(commands.Cog):
 
         async with self.lock:  # Utilize async lock to prevent parallel message processing edge cases
             await self.assert_last(message)  # Ensure self.last_number and self.last_message exists
-            current_number = await get_num(message)
+            current_number = await get_num(message, reply=True)
             if current_number is not None:  # Is a number
                 expected_number = self.last_number + 1
 
