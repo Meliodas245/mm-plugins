@@ -9,8 +9,9 @@ COUNTING_CHANNEL = 1162804188800102501
 DEVELOPER_ROLE = 1087928500893265991
 DUPLICATE_GRACE = 0.75  # Time in seconds to be lenient to duplicate messages
 s = simpleeval.SimpleEval()
-s.operators[ast.BitXor] = simpleeval.safe_power  # ^ symbol, which most people use as **
-simpleeval.MAX_POWER = 100  # We're never getting that far (prevents timely exponent operations)
+del s.operators[ast.BitXor]  # ^ symbol, which people may confuse for ** (would override, but syntax is slightly diff)
+del s.operators[ast.BitOr]  # | symbol, which people may confuse for abs
+simpleeval.MAX_POWER = 1000  # We're never getting that far (prevents timely exponent operations)
 
 
 def set_embed_author(embed: discord.Embed, member: discord.Member):
@@ -57,6 +58,16 @@ class Counting(commands.Cog):
         """Perform asynchronous actions when the Cog initializes"""
         async with self.lock:
             await self.assert_last(only_history=True)
+
+    def get_representation(self):
+        """Get a representation of the last number, returning the number itself by default, but the message instead for expressions, escaped as needed."""
+        assert self.last_number is not None and self.last_message is not None
+        self.last_message: discord.Message
+        if self.last_message.author.bot or str(self.last_number) == self.last_message.content:
+            # If last_number is last_message, then it's not an expression. If it's a bot, it's likely us (we don't do expressions)
+            return f"**`{self.last_number:,d}`**"
+        else:
+            return f"\n```py\n{self.last_message.content.replace('`', '[backtick]')}\n```\n"
 
     async def fail(self, title: str, message: discord.Message):
         """Method to send a count-failed message with a customizable title.
@@ -107,7 +118,7 @@ class Counting(commands.Cog):
             if message.author.bot and message.author.id != self.bot.user.id:  # Bot that isn't us
                 continue
             num = await get_num(message)
-            if num:
+            if num is not None:
                 self.last_number = num
                 self.last_message = message
                 if not any([i.me and i.emoji == "✅" for i in message.reactions]):
@@ -119,7 +130,7 @@ class Counting(commands.Cog):
 
         if default_message:  # Check the default_message, if provided, for a valid count
             num = await get_num(default_message)
-            if num:
+            if num is not None:
                 self.last_number = num - 1
                 self.last_message = await self.channel.send(
                     content="*Count Recovered - Ignore This Message*")  # So double-count doesn't kick in
@@ -146,7 +157,7 @@ class Counting(commands.Cog):
         async with self.lock:  # Utilize async lock to prevent parallel message processing edge cases
             await self.assert_last(message)  # Ensure self.last_number and self.last_message exists
             current_number = await get_num(message)
-            if current_number:  # Is a number
+            if current_number is not None:  # Is a number
                 expected_number = self.last_number + 1
 
                 if current_number != expected_number:  # They can't count :(
@@ -158,7 +169,7 @@ class Counting(commands.Cog):
                         return await message.reply(embed=discord.Embed(
                             title="That doesn't look right, but I'll give you a chance...",
                             description=f"{message.author.mention} sent a duplicate number, but within the grace period. "
-                                        f"The count is still at **{self.last_number:,d}**.",
+                                        f"The count is still at {self.get_representation()}.",
                             colour=discord.Colour.yellow()
                         ))
 
@@ -186,7 +197,7 @@ class Counting(commands.Cog):
                 embed = discord.Embed(description=message.content, colour=discord.Colour.light_gray())
                 embed.add_field(
                     name="​",  # Zero-width space for an empty field name (using field as footer doesn't allow MD formatting)
-                    value=f"*The count is currently at: **`{self.last_number:,d}`**, by {self.last_message.author.mention}*"
+                    value=f"*The count is currently at:* {self.get_representation()} (*by {self.last_message.author.mention}*)"
                 )
                 set_embed_author(embed, message.author)
                 await message.delete()
@@ -200,7 +211,7 @@ class Counting(commands.Cog):
 
         embed = discord.Embed(
             description=f"{before.author.mention} tried editing their message...\n\n"
-                        f"The count is currently at: **`{self.last_number:,d}`**",
+                        f"The count is currently at: {self.get_representation()}",
             colour=discord.Colour.green()
         )
         set_embed_author(embed, before.author)
@@ -215,7 +226,7 @@ class Counting(commands.Cog):
 
         embed = discord.Embed(
             description=f"{message.author.mention} tried deleting their message...\n\n"
-                        f"The count is currently at: **`{self.last_number:,d}`**",
+                        f"The count is currently at: {self.get_representation()}",
             colour=discord.Colour.dark_green()
         )
         set_embed_author(embed, message.author)
