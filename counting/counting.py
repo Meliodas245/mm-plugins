@@ -24,6 +24,9 @@ s.functions.update(  # Add additional functions
     sqrt=math.sqrt,
     abs=abs,
 )
+s.names.update(  # Add additional variables
+    pi=math.pi,
+)
 simpleeval.MAX_POWER = 1000  # We're never getting that far (prevents timely exponent operations)
 
 
