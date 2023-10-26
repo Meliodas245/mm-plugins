@@ -257,31 +257,39 @@ class Counting(commands.Cog):
     @commands.Cog.listener("on_message_edit")
     async def counting_on_message_edit(self, before: discord.Message, after: discord.Message):
         """on_message_edit event handler to allow for handling of counting message edits"""
-        if not self.last_message or before.id != self.last_message.id:
+        if before.channel.id != COUNTING_CHANNEL:  # Check if we're in counting channel first, to prevent excessive locks
             return
 
-        embed = discord.Embed(
-            description=f"{before.author.mention} tried editing their message...\n\n"
-                        f"The count is currently at: {self.get_representation()}",
-            colour=discord.Colour.green()
-        )
-        set_embed_author(embed, before.author)
-        self.last_message = await before.channel.send(content=str(self.last_number), embed=embed)
-        await before.delete()  # Delete original message after self.last_message is set, to prevent triggering deletion detection
+        async with self.lock:  # Utilize async lock to prevent parallel message processing edge cases
+            if not self.last_message or before.id != self.last_message.id:
+                return
+
+            embed = discord.Embed(
+                description=f"{before.author.mention} tried editing their message...\n\n"
+                            f"The count is currently at: {self.get_representation()}",
+                colour=discord.Colour.green()
+            )
+            set_embed_author(embed, before.author)
+            self.last_message = await before.channel.send(content=str(self.last_number), embed=embed)
+            await before.delete()  # Delete original message after self.last_message is set, to prevent triggering deletion detection
 
     @commands.Cog.listener("on_message_delete")
     async def counting_on_message_delete(self, message: discord.Message):
         """on_message_delete event handler to allow for handling of counting message deletions"""
-        if not self.last_message or message.id != self.last_message.id:
+        if message.channel.id != COUNTING_CHANNEL:  # Check if we're in counting channel first, to prevent excessive locks
             return
 
-        embed = discord.Embed(
-            description=f"{message.author.mention} tried deleting their message...\n\n"
-                        f"The count is currently at: {self.get_representation()}",
-            colour=discord.Colour.dark_green()
-        )
-        set_embed_author(embed, message.author)
-        self.last_message = await message.channel.send(content=str(self.last_number), embed=embed)
+        async with self.lock:  # Utilize async lock to prevent parallel message processing edge cases
+            if not self.last_message or message.id != self.last_message.id:
+                return
+
+            embed = discord.Embed(
+                description=f"{message.author.mention} tried deleting their message...\n\n"
+                            f"The count is currently at: {self.get_representation()}",
+                colour=discord.Colour.dark_green()
+            )
+            set_embed_author(embed, message.author)
+            self.last_message = await message.channel.send(content=str(self.last_number), embed=embed)
 
     @commands.command()
     @commands.has_role(DEVELOPER_ROLE)
