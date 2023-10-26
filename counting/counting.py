@@ -50,6 +50,27 @@ def set_embed_author(embed: discord.Embed, member: discord.Member):
     embed.set_author(name=f"{member.display_name} ({member.id})", icon_url=member.display_avatar.url)
 
 
+def get_exp_code(exp):
+    """Place an expression into a code-block, escaping as needed."""
+    return f"```py\n{exp.replace('`', '[backtick]')}\n```"
+
+
+async def expression_reply(message: discord.Message, exp: str, content: str, delete_after=15, **kwargs):
+    """Send a reply to a message, including an expression at the top of the message. Commonly used for fail-evaluate notices.
+
+    :param message: Message to reply to
+    :param exp: Expression to include
+    :param content: Additional message content
+    :param delete_after: Relayed to message.reply(), default 15 seconds
+    :param kwargs: kwargs to relay to message.reply()
+    :return: Replied message object
+    """
+    return await message.reply(embed=discord.Embed(
+        description=f"{get_exp_code(exp)}\n{content}",
+        colour=discord.Colour.dark_grey()
+    ), delete_after=delete_after, **kwargs)
+
+
 async def safe_eval(string: str):
     """Async wrapper for s.eval() so we can use asyncio.wait_for"""
     return s.eval(string)
@@ -61,34 +82,66 @@ async def get_num(message: discord.Message, reply: bool = False):
     if simple_contents.isdigit():
         return int(simple_contents)
 
+    match = CODE_BLOCK_REGEX.match(message.content)
+    if match:
+        content = match.group("code")
+    else:
+        content = message.content
     try:
-        match = CODE_BLOCK_REGEX.match(message.content)
-        if match:
-            content = match.group("code")
-        else:
-            content = message.content
         eval_output = await asyncio.wait_for(safe_eval(content), timeout=2)  # 2 second timeout, just in case
         if isinstance(eval_output, float):
             if eval_output.is_integer():  # Float type, but whole number
                 eval_output = int(eval_output)  # Convert to integer so it succeeds int check later
             else:  # Float type, not a whole number
                 if reply:
-                    await message.reply(embed=discord.Embed(
-                        description=f"I've calculated:\n```py\n{content.replace('`','[backtick]')}\n```\n= "
-                                    f"*`{eval_output}`*\n\nTo prevent unexpected behaviour, I do not automatically "
-                                    "convert decimal numbers to whole numbers. You can do this yourself with:\n"
-                                    "- `int(your content)`/`floor(your content)`: Rounds down (truncates)\n"
-                                    "- `ceil(your content)`: Rounds up\n"
-                                    "- `round(your content)`: Rounds (<= 0.5 down, > 0.5 up)\n"
-                                    "- `dividend//divisor`: Floor division, divides then rounds down (truncates)",
-                        colour=discord.Colour.dark_grey()
-                    ), delete_after=15)
+                    await expression_reply(
+                        message, content,
+                        f"= *{eval_output}*\n\nTo prevent unexpected behaviour, I do not automatically convert"
+                        "decimal numbers to whole numbers. You can do this yourself with:\n"
+                        "- `int(your content)`/`floor(your content)`: Rounds down (truncates)\n"
+                        "- `ceil(your content)`: Rounds up\n"
+                        "- `round(your content)`: Rounds (<= 0.5 down, > 0.5 up)\n"
+                        "- `dividend//divisor`: Floor division, divides then rounds down (truncates)"
+                    )
                 return None
 
         if isinstance(eval_output, int):
             return eval_output
+    except simpleeval.NumberTooHigh:
+        if reply:
+            await expression_reply(
+                message, content,
+                "Why don't you try and calculate that?\n*(A number in your expression is too big -- "
+                "some operations have size limits to prevent time-expensive operations)*"
+            )
+    except simpleeval.IterableTooLong:
+        if reply:
+            await expression_reply(
+                message, content,
+                "An iterable in your expression is way too big -- there are size limits to prevent "
+                "memory-expensive operations"
+            )
+    except simpleeval.MultipleExpressions:
+        if reply:
+            await expression_reply(
+                message, content,
+                "I've detected multiple expressions in your message, only one expression is allowed.\n"
+                "||*(Check for ;'s)*||"
+            )
+    except simpleeval.FunctionNotDefined as e:
+        if reply:
+            await expression_reply(
+                message, content,
+                f"The function `{getattr(e, 'func_name').replace('`', '[backtick]')}` does not exist."
+            )
+    except simpleeval.OperatorNotDefined as e:
+        if reply:
+            await expression_reply(
+                message, content,
+                f"The operator `{e.attr}` does not exist."
+            )
     except (Exception,):
-        return None
+        pass
     return None
 
 
@@ -121,7 +174,7 @@ class Counting(commands.Cog):
                 content = match.group("code")
             else:
                 content = self.last_message.content
-            return f"\n```py\n{content.replace('`', '[backtick]')}\n```\n"
+            return get_exp_code(content) + "\n"
 
     async def fail(self, title: str, message: discord.Message):
         """Method to send a count-failed message with a customizable title.
@@ -223,7 +276,8 @@ class Counting(commands.Cog):
                         return await message.reply(embed=discord.Embed(
                             title="That doesn't look right, but I'll give you a chance...",
                             description=f"{message.author.mention} sent a duplicate number, but within the grace period. "
-                                        f"The count is still at {self.get_representation()}.",
+                                        f"The count is still at {self.get_representation()} "
+                                        f"(by {self.last_message.author.mention}).",
                             colour=discord.Colour.yellow()
                         ))
 
