@@ -31,6 +31,12 @@ class Counting(commands.Cog):
         self.last_number = None
         self.last_message = None  # DO NOT RELY ON FOR CURRENT #, use self.last_number instead
         self.lock = asyncio.Lock()  # To prevent dual-processing edge-cases
+        self.bot.loop.create_task(self.async_init())
+
+    async def async_init(self):
+        """Perform asynchronous actions when the Cog initializes"""
+        async with self.lock:
+            await self.assert_last(only_history=True)
 
     async def fail(self, title: str, message: discord.Message):
         """Method to send a count-failed message with a customizable title.
@@ -55,7 +61,7 @@ class Counting(commands.Cog):
         )  # "0" content allows for count detection on restart
         return
 
-    async def assert_last(self, default_message: discord.Message = None):
+    async def assert_last(self, default_message: discord.Message = None, only_history: bool = False):
         """
         Ensure that self.last_number and self.last_message exist. If they don't exist, the following will be done in order:
 
@@ -63,15 +69,17 @@ class Counting(commands.Cog):
         2. If number in optionally provided message, assume that number is valid, and set last_number to be 1 before it
         3. Reset count to 0
 
-        If this method is run, it can be guaranteed that self.last_number and self.last_message will exist in some form.
+        If this method is run, it can be guaranteed that self.last_number and self.last_message will exist in some form
+        (except using only_history).
 
         :param default_message: Message to attempt to default to if search fails. Will not be included in history search.
+        :param only_history: Whether to only attempt a history recover, if this is True, self.last_number and self.last_message cannot be guaranteed to exist.
         """
         if self.last_number is not None and self.last_message is not None:
             return
 
         async for message in self.channel.history(limit=100, oldest_first=False):
-            if message.id == default_message.id:  # Do not include message provided as default
+            if default_message and message.id == default_message.id:  # Do not include message provided as default
                 continue
             if message.author.bot and message.author.id != self.bot.user.id:  # Bot that isn't us
                 continue
@@ -79,7 +87,12 @@ class Counting(commands.Cog):
             if content.isdigit():
                 self.last_number = int(content)
                 self.last_message = message
+                if not any([i.me and i.emoji == "✅" for i in message.reactions]):
+                    await message.add_reaction('✅')
                 return
+
+        if only_history:
+            return
 
         if default_message:
             content = get_simplified_contents(default_message)
