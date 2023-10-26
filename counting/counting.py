@@ -154,7 +154,15 @@ async def get_num(message: discord.Message, reply: bool = False):
     except simpleeval.FunctionNotDefined as e:
         fail_msg = f"The function `{getattr(e, 'func_name').replace('`', '[backtick]')}` does not exist."
     except simpleeval.OperatorNotDefined as e:
-        fail_msg = f"The operator `{e.attr.replace('`', '[backtick]')}` does not exist."
+        try:
+            op_name = e.attr.__class__.__name__
+            fail_msg = f"The operator `{op_name}` does not exist."
+            if op_name == "BitXor":
+                fail_msg += "\nTo perform a power operation, use `**` instead of `^`."
+            elif op_name == "BitOr":
+                fail_msg += "\nTo get an absolute value, use `abs(content here)` instead of `|content here|`."
+        except (Exception,):
+            fail_msg = None
     except (Exception,):
         pass
     if reply and fail_msg is not None:
