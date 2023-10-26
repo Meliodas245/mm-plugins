@@ -1,5 +1,6 @@
 import ast
 import asyncio
+import re
 
 import discord
 import simpleeval
@@ -8,6 +9,10 @@ from discord.ext import commands
 COUNTING_CHANNEL = 1162804188800102501
 DEVELOPER_ROLE = 1087928500893265991
 DUPLICATE_GRACE = 0.75  # Time in seconds to be lenient to duplicate messages
+CODE_BLOCK_REGEX = re.compile(
+    r"(?P<delim>(?P<block>```)|``?)(?(block)(?:(?P<lang>[a-z]+)\n)?)(?:[ \t]*\n)*(?P<code>.*?)\s*(?P=delim)",
+    re.DOTALL | re.IGNORECASE
+)
 s = simpleeval.SimpleEval()
 del s.operators[ast.BitXor]  # ^ symbol, which people may confuse for ** (would override, but syntax is slightly diff)
 del s.operators[ast.BitOr]  # | symbol, which people may confuse for abs
@@ -35,7 +40,12 @@ async def get_num(message: discord.Message):
         return int(simple_contents)
 
     try:
-        eval_output = await asyncio.wait_for(safe_eval(message.content), timeout=2)  # 2 second timeout, just in case
+        match = CODE_BLOCK_REGEX.match(message.content)
+        if match:
+            content = match.group("code")
+        else:
+            content = message.content
+        eval_output = await asyncio.wait_for(safe_eval(content), timeout=2)  # 2 second timeout, just in case
         if isinstance(eval_output, int):
             return eval_output
     except (Exception,):
@@ -67,7 +77,12 @@ class Counting(commands.Cog):
             # If last_number is last_message, then it's not an expression. If it's a bot, it's likely us (we don't do expressions)
             return f"**`{self.last_number:,d}`**"
         else:
-            return f"\n```py\n{self.last_message.content.replace('`', '[backtick]')}\n```\n"
+            match = CODE_BLOCK_REGEX.match(self.last_message.content)
+            if match:
+                content = match.group("code")
+            else:
+                content = self.last_message.content
+            return f"\n```py\n{content.replace('`', '[backtick]')}\n```\n"
 
     async def fail(self, title: str, message: discord.Message):
         """Method to send a count-failed message with a customizable title.
