@@ -239,8 +239,14 @@ class Counting(commands.Cog):
                     value=f"*The count is currently at:* {self.get_representation()} (*by {self.last_message.author.mention}*)"
                 )
                 set_embed_author(embed, message.author)
+                files = []
+                if len(message.attachments) > 0:
+                    for attach in message.attachments:
+                        if not attach.content_type or not attach.content_type.startswith("image/"):
+                            continue
+                        files.append(await attach.to_file())
                 await message.delete()
-                return await message.channel.send(embed=embed, reference=message.reference, mention_author=False)
+                return await message.channel.send(embed=embed, reference=message.reference, mention_author=False, files=files)
 
     @commands.Cog.listener("on_message_edit")
     async def counting_on_message_edit(self, before: discord.Message, after: discord.Message):
