@@ -77,10 +77,10 @@ async def safe_eval(string: str):
 
 
 async def get_num(message: discord.Message, reply: bool = False):
-    """Get a number from a user input, potentially containing mathematical expressions
+    """Get a number from a user input, potentially containing mathematical expressions.
 
     :param message: Message to get the input from
-    :param reply: Whether to reply to the user in select fail-evaluate circumstances
+    :param reply: Whether to reply to the user with details in select fail-evaluate circumstances
     :return: Number if successful, None if unsuccessful
     """
     simple_contents = message.content.strip().replace(",", "")
@@ -125,7 +125,7 @@ async def get_num(message: discord.Message, reply: bool = False):
     except simpleeval.FunctionNotDefined as e:
         fail_msg = f"The function `{getattr(e, 'func_name').replace('`', '[backtick]')}` does not exist."
     except simpleeval.OperatorNotDefined as e:
-        fail_msg = f"The operator `{e.attr}` does not exist."
+        fail_msg = f"The operator `{e.attr.replace('`', '[backtick]')}` does not exist."
     except (Exception,):
         pass
     if reply and fail_msg is not None:
@@ -150,7 +150,8 @@ class Counting(commands.Cog):
             await self.assert_last(only_history=True)
 
     def get_representation(self):
-        """Get a representation of the last number, returning the number itself by default, but the message instead for expressions, escaped as needed."""
+        """Get a representation of the last number, returning the number itself by default, but a code block
+         instead for expressions, escaped as needed."""
         assert self.last_number is not None and self.last_message is not None
         self.last_message: discord.Message
         if self.last_message.author.bot or str(self.last_number) == self.last_message.content:
