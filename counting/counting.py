@@ -58,6 +58,7 @@ s.functions.update(  # Add additional functions
 )
 s.names.update(  # Add additional variables
     pi=math.pi,
+    e=math.e,
 )
 simpleeval.MAX_POWER = (
     10000  # We're never getting that far (prevents timely exponent operations)
