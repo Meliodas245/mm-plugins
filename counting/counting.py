@@ -146,7 +146,8 @@ async def get_num(message: discord.Message, reply: bool = False):
                         content,
                         f"= *`{eval_output}`*\n\nTo prevent unexpected behaviour, I do not automatically convert "
                         "decimal numbers to whole numbers. You can do this yourself with:\n"
-                        "- `int(your content)`/`floor(your content)`: Rounds down (truncates)\n"
+                        "- `int(your content)`: Truncates (ignores all decimals)\n"
+                        "- `floor(your content)`: Rounds down\n"
                         "- `ceil(your content)`: Rounds up\n"
                         "- `round(your content)`: Rounds (<= 0.5 down, > 0.5 up)\n"
                         "- `dividend//divisor`: Floor division, divides then rounds down (truncates)",
