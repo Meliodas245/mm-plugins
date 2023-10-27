@@ -413,12 +413,13 @@ class Counting(commands.Cog):
                             continue
                         files.append(await attach.to_file())
                 await message.delete()
-                return await message.channel.send(
+                msg = await message.channel.send(
                     embed=embed,
                     reference=message.reference,
                     mention_author=False,
                     files=files,
                 )
+                return await msg.add_reaction("🗑️")  # Make message user-deletable (via react)
 
     @commands.Cog.listener("on_message_edit")
     async def counting_on_message_edit(
@@ -434,6 +435,7 @@ class Counting(commands.Cog):
             if not self.last_message or before.id != self.last_message.id:
                 return
 
+            # Do not remove the "editing" portion, other segments of code look for that as a keyword
             embed = discord.Embed(
                 description=f"{before.author.mention} tried editing their message...\n\n"
                 f"The count is currently at: {self.get_representation()}",
@@ -457,6 +459,7 @@ class Counting(commands.Cog):
             if not self.last_message or message.id != self.last_message.id:
                 return
 
+            # Do not remove the "deleting" portion, other segments of code look for that as a keyword
             embed = discord.Embed(
                 description=f"{message.author.mention} tried deleting their message...\n\n"
                 f"The count is currently at: {self.get_representation()}",
@@ -466,6 +469,25 @@ class Counting(commands.Cog):
             self.last_message = await message.channel.send(
                 content=str(self.last_number), embed=embed
             )
+
+    @commands.Cog.listener("on_reaction_add")
+    async def counting_on_reaction_add(self, reaction: discord.Reaction, member: discord.Member):
+        """on_reaction_add event handler to allow for deletion of select messages (bot must react with 🗑️ for it to be deletable)"""
+        message = reaction.message
+        if message.channel.id != COUNTING_CHANNEL or message.author.id != self.bot.user.id:  # Not counting channel, or message not by us
+            return
+        if reaction.emoji != "🗑️" or member.id == self.bot.user.id:  # Not trash bin emoji, or our own reaction
+            return
+        if not reaction.me:  # We didn't react with 🗑️ (non-deletable message)
+            return
+        if len(message.embeds) == 0 or str(member.id) not in message.embeds[0].author.name:  # Author must be user reacting
+            # Thinking about this, technically if someone changes their nickname to someone else's user ID, that person
+            # could delete because it would match the author.name field, but that's on the person who changed their nick...
+            # - blank, at midnight
+
+            # Removing reaction at this point because we're far enough in that it's likely an attempt to delete
+            return await reaction.remove(member)
+        await message.delete()
 
     @commands.command()
     @commands.has_role(DEVELOPER_ROLE)
