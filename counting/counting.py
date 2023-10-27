@@ -95,7 +95,7 @@ def set_embed_footer(embed: discord.Embed, additional: str = None) -> discord.Em
     """
     text = f"Counting Plugin v{VERSION}"
     if additional:
-        text += f"| {additional}"
+        text += f" | {additional}"
     embed.set_footer(text=text)
     return embed
 
