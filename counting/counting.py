@@ -97,7 +97,9 @@ def set_embed_footer(embed: discord.Embed, additional: str = None) -> discord.Em
     return embed
 
 
-def set_embed_author_footer(embed: discord.Embed, member: discord.Member, additional: str = None) -> discord.Embed:
+def set_embed_author_footer(
+    embed: discord.Embed, member: discord.Member, additional: str = None
+) -> discord.Embed:
     """Combination of set_embed_author and set_embed_footer, for quick-creations
 
     :param embed: Embed to set the author and footer for
@@ -126,10 +128,13 @@ async def expression_reply(
     :return: Replied message object
     """
     return await message.reply(
-        embed=set_embed_footer(discord.Embed(
-            description=f"{get_exp_code(exp)}\n{content}",
-            colour=discord.Colour.dark_grey(),
-        ), f"This message will delete itself in {delete_after} seconds."),
+        embed=set_embed_footer(
+            discord.Embed(
+                description=f"{get_exp_code(exp)}\n{content}",
+                colour=discord.Colour.dark_grey(),
+            ),
+            f"This message will delete itself in {delete_after} seconds.",
+        ),
         delete_after=delete_after,
         **kwargs,
     )
@@ -349,13 +354,15 @@ class Counting(commands.Cog):
         self.last_number = 0
         self.last_message = await self.channel.send(
             content="0",
-            embed=set_embed_footer(discord.Embed(
-                title="Count Reset to 0",
-                description="I was unable to find any previous counting data, through any recovery method. As a result, "
-                "the count has been reset to 0. This should almost never happen, please contact a bot "
-                "developer if you see this in normal operational circumstances.\n\nNext number is **1**.",
-                colour=discord.Colour.red(),
-            )),
+            embed=set_embed_footer(
+                discord.Embed(
+                    title="Count Reset to 0",
+                    description="I was unable to find any previous counting data, through any recovery method. As a result, "
+                    "the count has been reset to 0. This should almost never happen, please contact a bot "
+                    "developer if you see this in normal operational circumstances.\n\nNext number is **1**.",
+                    colour=discord.Colour.red(),
+                )
+            ),
         )
 
     @commands.Cog.listener("on_message")
@@ -392,13 +399,15 @@ class Counting(commands.Cog):
                     ):
                         await message.add_reaction("❌")
                         return await message.reply(
-                            embed=set_embed_footer(discord.Embed(
-                                title="That doesn't look right, but I'll give you a chance...",
-                                description=f"{message.author.mention} sent a duplicate number, but within the grace period. "
-                                f"The count is still at {self.get_representation()} "
-                                f"(by {self.last_message.author.mention}).",
-                                colour=discord.Colour.yellow(),
-                            ))
+                            embed=set_embed_footer(
+                                discord.Embed(
+                                    title="That doesn't look right, but I'll give you a chance...",
+                                    description=f"{message.author.mention} sent a duplicate number, but within the grace period. "
+                                    f"The count is still at {self.get_representation()} "
+                                    f"(by {self.last_message.author.mention}).",
+                                    colour=discord.Colour.yellow(),
+                                )
+                            )
                         )
 
                     return await self.fail(
@@ -486,11 +495,15 @@ class Counting(commands.Cog):
 
             # Do not remove the "editing" portion of the embed, other segments of code look for that as a keyword
             self.last_message = await before.channel.send(
-                content=str(self.last_number), embed=set_embed_author_footer(discord.Embed(
-                    description=f"{before.author.mention} tried editing their message...\n\n"
-                                f"The count is currently at: {self.get_representation()}",
-                    colour=discord.Colour.green(),
-                ), before.author)
+                content=str(self.last_number),
+                embed=set_embed_author_footer(
+                    discord.Embed(
+                        description=f"{before.author.mention} tried editing their message...\n\n"
+                        f"The count is currently at: {self.get_representation()}",
+                        colour=discord.Colour.green(),
+                    ),
+                    before.author,
+                ),
             )
             await before.delete()  # Delete original message after self.last_message is set, to prevent triggering deletion detection
 
@@ -508,11 +521,15 @@ class Counting(commands.Cog):
 
             # Do not remove the "deleting" portion of the embed, other segments of code look for that as a keyword
             self.last_message = await message.channel.send(
-                content=str(self.last_number), embed=set_embed_author_footer(discord.Embed(
-                    description=f"{message.author.mention} tried deleting their message...\n\n"
-                                f"The count is currently at: {self.get_representation()}",
-                    colour=discord.Colour.dark_green(),
-                ), message.author)
+                content=str(self.last_number),
+                embed=set_embed_author_footer(
+                    discord.Embed(
+                        description=f"{message.author.mention} tried deleting their message...\n\n"
+                        f"The count is currently at: {self.get_representation()}",
+                        colour=discord.Colour.dark_green(),
+                    ),
+                    message.author,
+                ),
             )
 
     @commands.Cog.listener("on_reaction_add")
@@ -551,11 +568,13 @@ class Counting(commands.Cog):
         self.last_number = number
         self.last_message = await self.channel.send(
             content=str(number),
-            embed=set_embed_footer(discord.Embed(
-                title="Count Overridden!",
-                description=f"The current count has been set to: **`{number:,d}`** by {ctx.author.mention}.",
-                colour=discord.Colour.green(),
-            )),
+            embed=set_embed_footer(
+                discord.Embed(
+                    title="Count Overridden!",
+                    description=f"The current count has been set to: **`{number:,d}`** by {ctx.author.mention}.",
+                    colour=discord.Colour.green(),
+                )
+            ),
         )
 
 
