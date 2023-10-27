@@ -238,6 +238,11 @@ async def get_num(message: discord.Message, reply: bool = False):
         except (Exception,):
             fail_msg = None
     except (SyntaxError, ValueError, TypeError, ZeroDivisionError) as e:
+        err_str = str(e)
+        if err_str.startswith("invalid syntax"):  # False-positives from messages starting with most symbols (?abc)
+            return None
+        elif err_str == "__init__() missing 1 required positional argument: 'expression'":  # odd error that happens with every message
+            return None
         fail_msg = f"```py\n{repr(e).replace('`', '[backtick]')}\n```"
     except (Exception,):
         pass
