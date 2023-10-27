@@ -52,7 +52,9 @@ s.functions.update(  # Add additional functions
     radians=math.radians,  # Offer deg -> rad conversion
     abs=abs,
     bitxor=op.xor,  # Reimplement bitwise XOR (^), which was removed to curb symbol confusion
-    bitor=op.or_,  # Reimplement bitwise OR (|), which was removed to curb symbol confusion
+    bitor=op.or_,  # Reimplement bitwise OR (|), which was removed to curb symbol confusion,
+    log=lambda x, base=10: math.log(x, base),  # Log with default base 10
+    ln=math.log,  # Default math.log (base e)
 )
 s.names.update(  # Add additional variables
     pi=math.pi,
