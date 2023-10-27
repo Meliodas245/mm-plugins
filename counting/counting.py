@@ -176,16 +176,18 @@ async def get_num(message: discord.Message, reply: bool = False):
     try:
         eval_output, ws = safe_eval(content).result()
         # Handle all warnings
-        for w in ws:
-            if w.category in [
-                simpleeval.AssignmentAttempted,
-                simpleeval.MultipleExpressions,
-            ]:
-                await expression_reply(
-                    message,
-                    content,
-                    f"```py\n{w.message.replace('`', '[backtick]')}```",
-                )
+        if reply:
+            for w in ws:
+                if w.category in [
+                    simpleeval.AssignmentAttempted,
+                    simpleeval.MultipleExpressions,
+                ]:
+                    msg = str(w.message).replace("\n", "\\n").replace("`", "[backtick]")
+                    await expression_reply(
+                        message,
+                        content,
+                        f"`{msg}`",
+                    )
 
         if isinstance(eval_output, float):
             if eval_output.is_integer():  # Float type, but whole number
