@@ -4,14 +4,17 @@ import math
 import operator as op
 import re
 import warnings
+from concurrent.futures import TimeoutError
 
 import discord
 import simpleeval
 from discord.ext import commands
+from pebble import concurrent
 
 VERSION = "2.1.0"
 COUNTING_CHANNEL = 1162804188800102501
 DEVELOPER_ROLE = 1087928500893265991
+EVALUATION_TIMEOUT = 2  # Time in seconds after which to timeout
 DUPLICATE_GRACE = 0.75  # Time in seconds to be lenient to duplicate messages
 CODE_BLOCK_REGEX = re.compile(
     r"(?P<delim>(?P<block>```)|``?)(?(block)(?:(?P<lang>[a-z]+)\n)?)(?:[ \t]*\n)*(?P<code>.*?)\s*(?P=delim)",
@@ -140,9 +143,17 @@ async def expression_reply(
     )
 
 
-async def safe_eval(string: str):
-    """Async wrapper for s.eval() so we can use asyncio.wait_for"""
-    return s.eval(string)
+@concurrent.process(timeout=EVALUATION_TIMEOUT)
+def safe_eval(string: str):
+    """Safely run simpleeval's parser, with a backup timeout (via Pebble)
+
+    :param string: String to evaluate (passed into simpleeval)
+    :return: Result of expression, and any warnings raised if successful (tuple)
+    :raises concurrent.futures.TimeoutError: Exception raised upon timeout
+    :raises Exception: Any exceptions raised by the parser
+    """
+    with warnings.catch_warnings(record=True) as ws:
+        return s.eval(string), ws
 
 
 async def get_num(message: discord.Message, reply: bool = False):
@@ -163,10 +174,7 @@ async def get_num(message: discord.Message, reply: bool = False):
         content = message.content
     fail_msg = None
     try:
-        with warnings.catch_warnings(record=True) as ws:
-            eval_output = await asyncio.wait_for(
-                safe_eval(content), timeout=2
-            )  # 2 second timeout, just in case
+        eval_output, ws = safe_eval(content).result()
         # Handle all warnings
         for w in ws:
             if w.category in [
@@ -202,6 +210,11 @@ async def get_num(message: discord.Message, reply: bool = False):
 
         if isinstance(eval_output, int):
             return eval_output
+    except TimeoutError:
+        fail_msg = (
+            "Too much math!\n*(Something in your expression is taking too long to evaluate)*\n\n"
+            "**If you are seeing this message, please report the expression you used to the bot development team.**"
+        )
     except simpleeval.NumberTooHigh:
         fail_msg = (
             "Why don't you try and calculate that?\n*(A number in your expression is too big -- "
