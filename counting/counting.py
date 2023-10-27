@@ -193,6 +193,8 @@ async def get_num(message: discord.Message, reply: bool = False):
                 fail_msg += "\nTo get an absolute value, use `abs(content here)` instead of `|content here|`."
         except (Exception,):
             fail_msg = None
+    except (SyntaxError, ValueError, TypeError, ZeroDivisionError) as e:
+        fail_msg = f"```py\n{repr(e).replace('`', '[backtick]')}\n```"
     except (Exception,):
         pass
     if reply and fail_msg is not None:
