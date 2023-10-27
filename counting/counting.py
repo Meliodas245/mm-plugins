@@ -3,6 +3,7 @@ import asyncio
 import math
 import operator as op
 import re
+import warnings
 
 import discord
 import simpleeval
@@ -131,9 +132,22 @@ async def get_num(message: discord.Message, reply: bool = False):
         content = message.content
     fail_msg = None
     try:
-        eval_output = await asyncio.wait_for(
-            safe_eval(content), timeout=2
-        )  # 2 second timeout, just in case
+        with warnings.catch_warnings(record=True) as ws:
+            eval_output = await asyncio.wait_for(
+                safe_eval(content), timeout=2
+            )  # 2 second timeout, just in case
+        # Handle all warnings
+        for w in ws:
+            if w.category in [
+                simpleeval.AssignmentAttempted,
+                simpleeval.MultipleExpressions,
+            ]:
+                await expression_reply(
+                    message,
+                    content,
+                    f"```py\n{w.message.replace('`', '[backtick]')}```",
+                )
+
         if isinstance(eval_output, float):
             if eval_output.is_integer():  # Float type, but whole number
                 eval_output = int(
@@ -420,7 +434,9 @@ class Counting(commands.Cog):
                     mention_author=False,
                     files=files,
                 )
-                return await msg.add_reaction("🗑️")  # Make message user-deletable (via react)
+                return await msg.add_reaction(
+                    "🗑️"
+                )  # Make message user-deletable (via react)
 
     @commands.Cog.listener("on_message_edit")
     async def counting_on_message_edit(
@@ -472,16 +488,26 @@ class Counting(commands.Cog):
             )
 
     @commands.Cog.listener("on_reaction_add")
-    async def counting_on_reaction_add(self, reaction: discord.Reaction, member: discord.Member):
+    async def counting_on_reaction_add(
+        self, reaction: discord.Reaction, member: discord.Member
+    ):
         """on_reaction_add event handler to allow for deletion of select messages (bot must react with 🗑️ for it to be deletable)"""
         message = reaction.message
-        if message.channel.id != COUNTING_CHANNEL or message.author.id != self.bot.user.id:  # Not counting channel, or message not by us
+        if (
+            message.channel.id != COUNTING_CHANNEL
+            or message.author.id != self.bot.user.id
+        ):  # Not counting channel, or message not by us
             return
-        if reaction.emoji != "🗑️" or member.id == self.bot.user.id:  # Not trash bin emoji, or our own reaction
+        if (
+            reaction.emoji != "🗑️" or member.id == self.bot.user.id
+        ):  # Not trash bin emoji, or our own reaction
             return
         if not reaction.me:  # We didn't react with 🗑️ (non-deletable message)
             return
-        if len(message.embeds) == 0 or str(member.id) not in message.embeds[0].author.name:  # Author must be user reacting
+        if (
+            len(message.embeds) == 0
+            or str(member.id) not in message.embeds[0].author.name
+        ):  # Author must be user reacting
             # Thinking about this, technically if someone changes their nickname to someone else's user ID, that person
             # could delete because it would match the author.name field, but that's on the person who changed their nick...
             # - blank, at midnight
