@@ -1,6 +1,7 @@
 import ast
 import asyncio
 import math
+import operator as op
 import re
 
 import discord
@@ -50,6 +51,8 @@ s.functions.update(  # Add additional functions
     degrees=math.degrees,  # Offer rad -> deg conversion
     radians=math.radians,  # Offer deg -> rad conversion
     abs=abs,
+    bitxor=op.xor,  # Reimplement bitwise XOR (^), which was removed to curb symbol confusion
+    bitor=op.or_,  # Reimplement bitwise OR (|), which was removed to curb symbol confusion
 )
 s.names.update(  # Add additional variables
     pi=math.pi,
