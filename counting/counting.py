@@ -401,9 +401,24 @@ class Counting(commands.Cog):
         if message.channel.id != COUNTING_CHANNEL:  # Not the counting channel
             return
 
-        # Special Messages
+        # Special Messages (Keyword)
         if message.content.lower() == "help":
-            pass
+            msg = await message.reply(
+                embed=set_embed_author_footer(
+                    discord.Embed(
+                        title="Need Help?",
+                        description="[View the Documentation](https://gist.github.com/blankdvth/"
+                        "2b2a5ac9b4c4d93b5d682390a1a3d2f0#counting-documentation)\n\nThe documentation "
+                        "includes the basic rules of the game, supported syntax, available functions & "
+                        "variables, and more. If you have any questions beyond the documentation, "
+                        "you can ask here, or ask one of the bot developers.",
+                        colour=discord.Colour.dark_grey(),
+                    ),
+                    message.author,
+                )
+            )
+            await message.delete()
+            return await msg.add_reaction("🗑️")
 
         async with self.lock:  # Utilize async lock to prevent parallel message processing edge cases
             await self.assert_last(
