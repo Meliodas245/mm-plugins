@@ -15,7 +15,7 @@ VERSION = "2.1.0"
 COUNTING_CHANNEL = 1162804188800102501
 DEVELOPER_ROLE = 1087928500893265991
 EVALUATION_TIMEOUT = 2  # Time in seconds after which to timeout
-DUPLICATE_GRACE = 0.75  # Time in seconds to be lenient to duplicate messages
+DUPLICATE_GRACE = 1  # Time in seconds to be lenient to duplicate messages
 CODE_BLOCK_REGEX = re.compile(
     r"(?P<delim>(?P<block>```)|``?)(?(block)(?:(?P<lang>[a-z]+)\n)?)(?:[ \t]*\n)*(?P<code>.*?)\s*(?P=delim)",
     re.DOTALL | re.IGNORECASE,
