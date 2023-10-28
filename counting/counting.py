@@ -11,7 +11,7 @@ import simpleeval
 from discord.ext import commands
 from pebble import concurrent
 
-VERSION = "2.1.0"
+VERSION = "2.1.1"
 COUNTING_CHANNEL = 1162804188800102501
 DEVELOPER_ROLE = 1087928500893265991
 EVALUATION_TIMEOUT = 2  # Time in seconds after which to timeout
