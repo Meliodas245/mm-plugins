@@ -407,10 +407,9 @@ class Counting(commands.Cog):
                 embed=set_embed_author_footer(
                     discord.Embed(
                         title="Need Help?",
-                        description="[View the Documentation](https://gist.github.com/blankdvth/"
-                        "2b2a5ac9b4c4d93b5d682390a1a3d2f0#counting-documentation)\n\nThe documentation "
-                        "includes the basic rules of the game, supported syntax, available functions & "
-                        "variables, and more. If you have any questions beyond the documentation, "
+                        description="[View the Documentation](https://slm.blankdvth.com/user/plugins/counting/)\n\n"
+                        "The documentation includes the basic rules of the game, supported syntax, available "
+                        "functions & variables, and more. If you have any questions beyond the documentation, "
                         "you can ask here, or ask one of the bot developers.",
                         colour=discord.Colour.dark_grey(),
                     ),
