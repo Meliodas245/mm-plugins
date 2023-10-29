@@ -193,7 +193,7 @@ def safe_eval(string: str):
         if err_str.startswith(
             "invalid syntax"
         ):  # False-positives from messages starting with most symbols (?abc)
-            fail_msg = None
+            pass
         else:
             fail_msg = f"```py\n{repr(e).replace('`', '[backtick]')}\n```"
     except (Exception,):
