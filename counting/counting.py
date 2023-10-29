@@ -510,6 +510,8 @@ class Counting(commands.Cog):
                         files.append(await attach.to_file())
                 await message.delete()
                 msg = await message.channel.send(
+                    content=f"*Message by `{message.author.display_name.replace('`', '[backtick]')}`, "
+                            f"<t:{int(message.created_at.timestamp())}:R>* ||`{message.author.id}`||",
                     embed=embed,
                     reference=message.reference,
                     mention_author=False,
