@@ -354,6 +354,8 @@ class Counting(commands.Cog):
                 continue
             if len(message.content) == 0:  # Empty message, don't bother
                 continue
+            if message.author.bot and not message.content.isdigit():  # All of our messages with #s are plain digits
+                continue
             num = await get_num(message)
             if num is not None:
                 self.last_number = num
@@ -511,7 +513,7 @@ class Counting(commands.Cog):
                 await message.delete()
                 msg = await message.channel.send(
                     content=f"*Message by `{message.author.display_name.replace('`', '[backtick]')}`, "
-                            f"<t:{int(message.created_at.timestamp())}:R>* ||`{message.author.id}`||",
+                            f"<t:{int(message.created_at.timestamp())}:R>*",
                     embed=embed,
                     reference=message.reference,
                     mention_author=False,
