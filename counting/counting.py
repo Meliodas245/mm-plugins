@@ -550,6 +550,12 @@ class Counting(commands.Cog):
             before.channel.id != COUNTING_CHANNEL
         ):  # Check if we're in counting channel first, to prevent excessive locks
             return
+        # Messages get detected as "edited" and trigger this even, even if they aren't edited for some reason.
+        # This is a temporary fix to prevent this issue from affecting the bot's own messages, as the reset message
+        # being deleted and resent is causing a lot of confusion.
+        # TODO: Fix underlying issue and remove temporary fix
+        if before.author.id == self.bot.user.id:
+            return
 
         async with self.lock:  # Utilize async lock to prevent parallel message processing edge cases
             if not self.last_message or before.id != self.last_message.id:
