@@ -11,7 +11,7 @@ import simpleeval
 from discord.ext import commands
 from pebble import concurrent
 
-VERSION = "2.1.0"
+VERSION = "2.1.1"
 COUNTING_CHANNEL = 1162804188800102501
 DEVELOPER_ROLE = 1087928500893265991
 EVALUATION_TIMEOUT = 2  # Time in seconds after which to timeout
@@ -145,73 +145,22 @@ async def expression_reply(
 
 @concurrent.process(timeout=EVALUATION_TIMEOUT)
 def safe_eval(string: str):
-    """Safely run simpleeval's parser, with a backup timeout (via Pebble)
+    """Safely run simpleeval's parser, with a backup timeout (via Pebble). It also generates and returns the
+    appropriate user-facing message for an exception.
 
     :param string: String to evaluate (passed into simpleeval)
-    :return: Result of expression, and any warnings raised if successful (tuple)
+    :return: If successful, (result, warnings). If unsuccessful, (Exception, fail_msg)
     :raises concurrent.futures.TimeoutError: Exception raised upon timeout
-    :raises Exception: Any exceptions raised by the parser
     """
-    with warnings.catch_warnings(record=True) as ws:
-        return s.eval(string), ws
 
+    # We generate fail_msg's here, as opposed to relaying the exception, because certain exceptions
+    # (e.g. FunctionNotDefined & OperatorNotDefined) cannot be pickled, and results in another error when we try to
+    # relay it back (really confusing one at that). It's simpler to just handle all message generation logic here.
 
-async def get_num(message: discord.Message, reply: bool = False):
-    """Get a number from a user input, potentially containing mathematical expressions.
-
-    :param message: Message to get the input from
-    :param reply: Whether to reply to the user with details in select fail-evaluate circumstances
-    :return: Number if successful, None if unsuccessful
-    """
-    simple_contents = message.content.strip().replace(",", "")
-    if simple_contents.isdigit():
-        return int(simple_contents)
-
-    match = CODE_BLOCK_REGEX.match(message.content)
-    if match:
-        content = match.group("code")
-    else:
-        content = message.content
     fail_msg = None
     try:
-        eval_output, ws = safe_eval(content).result()
-        # Handle all warnings
-        if reply:
-            for w in ws:
-                if w.category in [
-                    simpleeval.AssignmentAttempted,
-                    simpleeval.MultipleExpressions,
-                ]:
-                    msg = str(w.message).replace("\n", "\\n").replace("`", "[backtick]")
-                    await expression_reply(
-                        message,
-                        content,
-                        f"`{msg}`",
-                    )
-
-        if isinstance(eval_output, float):
-            if eval_output.is_integer():  # Float type, but whole number
-                eval_output = int(
-                    eval_output
-                )  # Convert to integer so it succeeds int check later
-            else:  # Float type, not a whole number
-                if reply:
-                    await expression_reply(
-                        message,
-                        content,
-                        f"= *`{eval_output}`*\n\nTo prevent unexpected behaviour, I do not automatically convert "
-                        "decimal numbers to whole numbers. You can do this yourself with:\n"
-                        "- `int(your content)`: Truncates (ignores all decimals)\n"
-                        "- `floor(your content)`: Rounds down\n"
-                        "- `ceil(your content)`: Rounds up\n"
-                        "- `round(your content)`: Rounds (<= 0.5 down, > 0.5 up)\n"
-                        "- `dividend//divisor`: Floor division, divides then rounds down (truncates)",
-                        delete_after=30,
-                    )
-                return None
-
-        if isinstance(eval_output, int):
-            return eval_output
+        with warnings.catch_warnings(record=True) as ws:
+            return s.eval(string), ws
     except TimeoutError:
         fail_msg = (
             "Too much math!\n*(Something in your expression is taking too long to evaluate)*\n\n"
@@ -244,16 +193,83 @@ async def get_num(message: discord.Message, reply: bool = False):
         if err_str.startswith(
             "invalid syntax"
         ):  # False-positives from messages starting with most symbols (?abc)
-            return None
-        elif (
-            err_str == "__init__() missing 1 required positional argument: 'expression'"
-        ):  # odd error that happens with every message
-            return None
-        fail_msg = f"```py\n{repr(e).replace('`', '[backtick]')}\n```"
+            pass
+        else:
+            fail_msg = f"```py\n{repr(e).replace('`', '[backtick]')}\n```"
     except (Exception,):
         pass
-    if reply and fail_msg is not None:
-        await expression_reply(message, content, fail_msg)
+
+    return Exception, fail_msg
+
+
+async def get_num(message: discord.Message, reply: bool = False):
+    """Get a number from a user input, potentially containing mathematical expressions.
+
+    :param message: Message to get the input from
+    :param reply: Whether to reply to the user with details in select fail-evaluate circumstances
+    :return: Number if successful, None if unsuccessful
+    """
+    # If it's just a digit, let's handle it without the evaluator
+    simple_contents = message.content.strip().replace(",", "")
+    if simple_contents.isdigit():
+        return int(simple_contents)
+
+    # It might be an expression, let's extract the code if it's in a code block
+    match = CODE_BLOCK_REGEX.match(message.content)
+    if match:
+        content = match.group("code")
+    else:
+        content = message.content
+
+    result = safe_eval(content).result()
+    if (
+        result[0] is Exception
+    ):  # If first element is an Exception, evaluation failed, there may be a fail_msg to reply
+        _, fail_msg = result
+        if reply and fail_msg is not None:
+            await expression_reply(message, content, fail_msg)
+        return None
+    else:  # Evaluation was successful if it's anything other than an exception
+        eval_output, ws = result
+
+    # Handle all warnings
+    if reply:
+        for w in ws:
+            if w.category in [
+                simpleeval.AssignmentAttempted,
+                simpleeval.MultipleExpressions,
+            ]:
+                msg = str(w.message).replace("\n", "\\n").replace("`", "[backtick]")
+                await expression_reply(
+                    message,
+                    content,
+                    f"`{msg}`",
+                )
+
+    if isinstance(eval_output, float):
+        if eval_output.is_integer():  # Float type, but whole number
+            eval_output = int(
+                eval_output
+            )  # Convert to integer so it succeeds int check later
+        else:  # Float type, not a whole number
+            if reply:
+                await expression_reply(
+                    message,
+                    content,
+                    f"= *`{eval_output}`*\n\nTo prevent unexpected behaviour, I do not automatically convert "
+                    "decimal numbers to whole numbers. You can do this yourself with:\n"
+                    "- `int(your content)`: Truncates (ignores all decimals)\n"
+                    "- `floor(your content)`: Rounds down\n"
+                    "- `ceil(your content)`: Rounds up\n"
+                    "- `round(your content)`: Rounds (<= 0.5 down, > 0.5 up)\n"
+                    "- `dividend//divisor`: Floor division, divides then rounds down (truncates)",
+                    delete_after=30,
+                )
+            return None
+
+    if isinstance(eval_output, int):
+        return eval_output
+
     return None
 
 
@@ -354,6 +370,10 @@ class Counting(commands.Cog):
                 continue
             if len(message.content) == 0:  # Empty message, don't bother
                 continue
+            if (
+                message.author.bot and not message.content.isdigit()
+            ):  # All of our messages with #s are plain digits
+                continue
             num = await get_num(message)
             if num is not None:
                 self.last_number = num
@@ -407,10 +427,9 @@ class Counting(commands.Cog):
                 embed=set_embed_author_footer(
                     discord.Embed(
                         title="Need Help?",
-                        description="[View the Documentation](https://gist.github.com/blankdvth/"
-                        "2b2a5ac9b4c4d93b5d682390a1a3d2f0#counting-documentation)\n\nThe documentation "
-                        "includes the basic rules of the game, supported syntax, available functions & "
-                        "variables, and more. If you have any questions beyond the documentation, "
+                        description="[View the Documentation](https://slm.blankdvth.com/user/plugins/counting/)\n\n"
+                        "The documentation includes the basic rules of the game, supported syntax, available "
+                        "functions & variables, and more. If you have any questions beyond the documentation, "
                         "you can ask here, or ask one of the bot developers.",
                         colour=discord.Colour.dark_grey(),
                     ),
@@ -511,6 +530,8 @@ class Counting(commands.Cog):
                         files.append(await attach.to_file())
                 await message.delete()
                 msg = await message.channel.send(
+                    content=f"*Message by `{message.author.display_name.replace('`', '[backtick]')}`, "
+                    f"<t:{int(message.created_at.timestamp())}:R>*",
                     embed=embed,
                     reference=message.reference,
                     mention_author=False,
@@ -528,6 +549,12 @@ class Counting(commands.Cog):
         if (
             before.channel.id != COUNTING_CHANNEL
         ):  # Check if we're in counting channel first, to prevent excessive locks
+            return
+        # Messages get detected as "edited" and trigger this even, even if they aren't edited for some reason.
+        # This is a temporary fix to prevent this issue from affecting the bot's own messages, as the reset message
+        # being deleted and resent is causing a lot of confusion.
+        # TODO: Fix underlying issue and remove temporary fix
+        if before.author.id == self.bot.user.id:
             return
 
         async with self.lock:  # Utilize async lock to prevent parallel message processing edge cases
